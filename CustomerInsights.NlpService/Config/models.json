@@ -1,0 +1,32 @@
+{
+  "AspectNli": {
+    "Path": "Models/AspectNli/model.onnx",
+    "Vocab": "Models/AspectNli/vocab.txt",
+    "Version": "bert-mnli-v1",
+    "MaxSeqLen": 256,
+    "HypothesisTemplate": "The review is about {aspect}.",
+    "TopK": 5
+  },
+  "Sentiment": {
+    "Path": "Models/Sentiment/model.onnx",
+    "Vocab": "Models/Sentiment/vocab.txt",
+    "Version": "finbert-tone-3class-v1",
+    "MaxSeqLen": 256
+  },
+  "Emotion": {
+    "Path": "Models/Emotion/model.onnx",
+    "Vocab": "Models/Emotion/vocab.txt",
+    "MaxSeqLen": 256,
+    "Threshold": 0.5,
+    "TopK": 5,
+    "Version": "en-goemotions-distilbert@1",
+    "SourceLabelsPath": "Models/Emotion/emotions.json"
+  },
+  "Urgency": {
+    "Path": "Models/Urgency/model.onnx",
+    "Vocab": "Models/Urgency/vocab.txt",
+    "Labels": [ "LOW", "MEDIUM", "HIGH" ],
+    "MaxSeqLen": 256,
+    "Version": "en-distilbert-urgency@1"
+  }
+}
