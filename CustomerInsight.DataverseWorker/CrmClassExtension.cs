@@ -149,39 +149,6 @@ namespace CustomerInsights.DataverseWorker
             entity[field] = lookUpEntity.ToEntityReference();
         }
 
-        static public void UpdateOptionSetToLookUp(this Entity entity, Entity defaultEntity, String fieldLookup, String fieldOptionSet, String fieldName, SetEntityValuesForOptionSetLookUp setValues, IOrganizationService service, string[] defaultEntityColumnset)
-        {
-            if ((defaultEntity == null) || (entity == null))
-                return;
-
-            if (entity.GetAttributeValue<Object>(fieldLookup) != null)
-                return;
-
-            if ((entity.Contains(fieldOptionSet) == true) && (entity.GetAttributeValue<OptionSetValue>(fieldOptionSet) != null))
-            {
-                String valueOp = service.GetOptionSetLabelByValue(entity.LogicalName, fieldOptionSet, entity.GetAttributeValue<OptionSetValue>(fieldOptionSet).Value);
-                Entity e = service.GetEntityByCondition(defaultEntity.LogicalName, fieldName, valueOp, defaultEntityColumnset);
-                if (e == null)
-                {   //es gibt noch keinen Datensatz, der das Optionset abbildet
-                    e = new Entity(defaultEntity.LogicalName);
-                    setValues(e, valueOp);
-                    service.Create(e);
-                }
-
-                if (entity.Contains(fieldLookup) == false)
-                    entity.Attributes.Add(fieldLookup, e.ToEntityReference());
-                else
-                    entity[fieldLookup] = e.ToEntityReference();
-
-                return;
-            }
-
-            if (entity.Contains(fieldLookup) == false)
-                entity.Attributes.Add(fieldLookup, defaultEntity.ToEntityReference());
-            else
-                entity[fieldLookup] = defaultEntity.ToEntityReference();
-        }
-
         static public string GetOptionSetLabelByValue(this IOrganizationService service, string entityName, string fieldName, int optionSetValue)
         {
             RetrieveAttributeRequest attReq = new RetrieveAttributeRequest();

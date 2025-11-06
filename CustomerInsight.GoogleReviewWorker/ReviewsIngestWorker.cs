@@ -1,4 +1,5 @@
 using CustomerInsight.GoogleAnalyticsWorker.Repositories;
+using CustomerInsight.GoogleReview.Models;
 using CustomerInsight.GoogleReview.Services;
 using Microsoft.Extensions.Hosting;
 using Polly;

@@ -4,10 +4,10 @@ using Polly.Retry;
 
 public sealed class FormsIngestWorker : BackgroundService
 {
-    private readonly ITenantRepository _tenants;
-    private readonly IGoogleTokenService _tokens;
-    private readonly IFormClient _forms;
-    private readonly IResponseSink _sink;
+    private readonly TenantRepository _tenants;
+    private readonly GoogleTokenService _tokens;
+    private readonly FormClient _forms;
+    private readonly ResponseSink _sink;
     private readonly ILogger<FormsIngestWorker> _log;
     private readonly TimeSpan _interval;
     private readonly int _maxParallel;
@@ -18,10 +18,10 @@ public sealed class FormsIngestWorker : BackgroundService
         .WaitAndRetryAsync(3, i => TimeSpan.FromSeconds(2 * i + 1));
 
     public FormsIngestWorker(
-        ITenantRepository tenants,
-        IGoogleTokenService tokens,
-        IFormClient forms,
-        IResponseSink sink,
+        TenantRepository tenants,
+        GoogleTokenService tokens,
+        FormClient forms,
+        ResponseSink sink,
         IConfiguration cfg,
         ILogger<FormsIngestWorker> log)
     {
@@ -71,7 +71,7 @@ public sealed class FormsIngestWorker : BackgroundService
         await Task.WhenAll(tasks);
     }
 
-    private async Task IngestTenant(TenantId tenantId, CancellationToken ct)
+    private async Task IngestTenant(Guid tenantId, CancellationToken ct)
     {
         var conn = await _tenants.GetGoogleConnectionAsync(tenantId, ct);
         if (conn is null) return;

@@ -1,3 +1,5 @@
+using CustomerInsight.GoogleAnalyticsWorker.Models;
+
 namespace CustomerInsight.GoogleAnalyticsWorker.Repositories
 {
     public sealed class TenantRepository
