@@ -1,7 +1,7 @@
-using CustomerInsight.GoogleFormsWorker;
+using CustomerInsights.GoogleFormsWorker;
 
 var builder = Host.CreateApplicationBuilder(args);
-builder.Services.AddHostedService<Worker>();
+builder.Services.AddHostedService<FormsIngestWorker>();
 
 var host = builder.Build();
 host.Run();

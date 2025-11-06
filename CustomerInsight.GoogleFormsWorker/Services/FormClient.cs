@@ -6,7 +6,7 @@ namespace CustomerInsights.GoogleFormsWorker.Services
 {
     public sealed class FormClient
     {
-        public async Task<(IEnumerable<FormResponseRow>, string?)> ListResponsesAsync(string accessToken, FormId formId, DateTimeOffset sinceUtc, int pageSize, string? pageToken, CancellationToken ct)
+        public async Task<(IEnumerable<FormResponseRow>, string?)> ListResponsesAsync(string accessToken, string formId, DateTimeOffset sinceUtc, int pageSize, string? pageToken, CancellationToken ct)
         {
             FormsService service = new FormsService(new BaseClientService.Initializer
             {
@@ -14,7 +14,7 @@ namespace CustomerInsights.GoogleFormsWorker.Services
                 ApplicationName = "YourSaaS-FormsIngest"
             });
 
-            var req = service.Forms.Responses.List(formId.Value);
+            var req = service.Forms.Responses.List(formId);
             req.Filter = $"timestamp >= {sinceUtc:yyyy-MM-ddTHH:mm:ssZ}";
             req.PageSize = pageSize;
             req.PageToken = pageToken;
@@ -38,7 +38,8 @@ namespace CustomerInsights.GoogleFormsWorker.Services
 
             static IEnumerable<FlatAnswer> FlattenAnswers(FormResponse r)
             {
-                if (r.Answers == null || r.Answers.Count == 0) yield break;
+                if (r.Answers == null || r.Answers.Count == 0)
+                    yield break;
 
                 foreach (var kv in r.Answers)
                 {

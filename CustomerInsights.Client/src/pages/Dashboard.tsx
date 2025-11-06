@@ -7,7 +7,7 @@ import {MetricsTrends} from "../components/MetricsTrends";
 
 export function Dashboard() {
     return (
-        <Box mx="auto" my="6" p="4">
+        <Box flexGrow="1" p="6">
             <DashboardHeader/>
             <MetricsTrends/>
             <Flex gap="9" direction="column" wrap="wrap">

@@ -14,6 +14,7 @@ import {
 import { CopyIcon } from "lucide-react";
 import {DashboardHeader} from "../components/DashboardHeader";
 import {MetricsTrends} from "../components/MetricsTrends";
+import ModifiedCard from "../components/ModifiedCard";
 
 export function AccountDetailPage() {
     return (
@@ -137,6 +138,7 @@ export function AccountDetailPage() {
                     </Table.Body>
                 </Table.Root>
             </Card>
+            <ModifiedCard/>
         </Flex>
         </Box>
     );

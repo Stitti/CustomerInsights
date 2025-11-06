@@ -11,6 +11,7 @@ import {
     TextField,
 } from "@radix-ui/themes";
 import {CopyIcon, MailIcon, PhoneIcon} from "lucide-react";
+import ModifiedCard from "../components/ModifiedCard";
 
 export function ContactDetailPage() {
     return (
@@ -129,6 +130,7 @@ export function ContactDetailPage() {
                         </Table.Body>
                     </Table.Root>
                 </Card>
+                <ModifiedCard/>
             </Flex>
         </Box>
     );

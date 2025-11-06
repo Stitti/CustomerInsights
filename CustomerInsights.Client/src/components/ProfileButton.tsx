@@ -6,6 +6,10 @@ import { useNavigate } from "react-router-dom";
 function ProfileButton() {
     const navigate = useNavigate();
 
+    function handleLogout() {
+        navigate("/login");
+    }
+
     return (
         <DropdownMenu.Root>
             <DropdownMenu.Trigger>
@@ -14,14 +18,14 @@ function ProfileButton() {
                 </IconButton>
             </DropdownMenu.Trigger>
             <DropdownMenu.Content color="gray" highContrast>
-                <DropdownMenu.Item style={{ cursor: "pointer" }}>
+                <DropdownMenu.Item style={{ cursor: "pointer" }} onClick={() => navigate("/profile")}>
                     Profile
                 </DropdownMenu.Item>
-                <DropdownMenu.Item style={{ cursor: "pointer" }}>
+                <DropdownMenu.Item style={{ cursor: "pointer" }} onClick={() => navigate("/admin/users")}>
                     Settings
                 </DropdownMenu.Item>
                 <DropdownMenu.Separator />
-                <DropdownMenu.Item style={{ cursor: "pointer" }}>
+                <DropdownMenu.Item style={{ cursor: "pointer" }} onClick={() => handleLogout()}>
                     Logout
                 </DropdownMenu.Item>
             </DropdownMenu.Content>

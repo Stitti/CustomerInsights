@@ -1,10 +1,26 @@
-import {Box, Badge, Card, Code, DataList, Flex, IconButton, Link, Text} from "@radix-ui/themes";
-import {CopyIcon, XIcon} from "lucide-react";
-
+import {Box, Badge, Card, Code, DataList, Flex, IconButton, Link, Text, Button, Heading} from "@radix-ui/themes";
+import {CopyIcon, RefreshCcw, SaveIcon, TrashIcon, XIcon} from "lucide-react";
+import ModifiedCard from "../components/ModifiedCard";
 
 export function InteractionDetailPage() {
     return (
         <Box flexGrow="1" p="6">
+            <Card style={{ flex: 1, minWidth: "100%" }}  mb="4">
+                <Flex direction="row" style={{justifyContent: "space-between"}} >
+                    <Text size="5">Supportanfrage zu Rechnungskorrektur</Text>
+                    <Flex direction="row" gap="4" wrap="wrap">
+                        <IconButton variant="soft">
+                            <SaveIcon size="20"/>
+                        </IconButton>
+                        <IconButton variant="soft">
+                            <TrashIcon size="20"/>
+                        </IconButton>
+                        <IconButton variant="soft">
+                            <RefreshCcw size="20"/>
+                        </IconButton>
+                    </Flex>
+                </Flex>
+            </Card>
         <Flex gap="9" direction="column" wrap="wrap">
             <Card style={{ flex: 1, minWidth: "100%" }} variant="ghost"  mb="4">
                 <Flex direction="row" gap="8" wrap="wrap">
@@ -156,6 +172,7 @@ export function InteractionDetailPage() {
                     </Card>
                 </Flex>
             </Card>
+            <ModifiedCard/>
         </Flex>
         </Box>
     )
