@@ -2,7 +2,6 @@ import { useThemeMode } from "../theme/ThemeProvider";
 import { Box, Flex, Text, Card } from "@radix-ui/themes";
 import { MoonIcon, SunIcon, MonitorIcon } from "lucide-react";
 import {useTranslation} from "react-i18next";
-import {ThemeProps} from "../models/themeProps";
 import {setThemeCookie} from "../theme/themeCookie";
 
 export default function ThemePicker() {

@@ -32,8 +32,10 @@ public class AppDbContext : DbContext
 
             cfg.Property(a => a.Id).HasColumnName("id");
             cfg.Property(a => a.Name).HasColumnName("name").HasMaxLength(256).IsRequired();
+            cfg.Property(a => a.ExternalId).HasColumnName("external_id").HasMaxLength(64).IsRequired();
             cfg.Property(a => a.ParentAccountId).HasColumnName("parent_account_id");
             cfg.Property(a => a.Industry).HasColumnName("industry").HasMaxLength(128);
+            cfg.Property(a => a.Country).HasColumnName("country").HasMaxLength(64);
             cfg.Property(a => a.Classification)
                .HasColumnName("classification")
                .HasConversion<int>(); // Enum -> int
@@ -72,6 +74,7 @@ public class AppDbContext : DbContext
             cfg.HasKey(c => c.Id);
 
             cfg.Property(c => c.Id).HasColumnName("id");
+            cfg.Property(c => c.ExternalId).HasColumnName("external_id").HasMaxLength(64);
             cfg.Property(c => c.Firstname).HasColumnName("firstname").HasMaxLength(128);
             cfg.Property(c => c.Lastname).HasColumnName("lastname").HasMaxLength(128);
             cfg.Property(c => c.Email).HasColumnName("email").HasMaxLength(256);

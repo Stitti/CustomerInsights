@@ -1,10 +1,13 @@
 import {Box, Badge, Card, Code, DataList, Flex, IconButton, Link, Text, Button, Heading} from "@radix-ui/themes";
 import {CopyIcon, RefreshCcw, SaveIcon, TrashIcon, XIcon} from "lucide-react";
 import ModifiedCard from "../components/ModifiedCard";
+import LookupField from "../components/LookupField";
+import BackButton from "../components/BackButton";
 
 export function InteractionDetailPage() {
     return (
         <Box flexGrow="1" p="6">
+            <BackButton/>
             <Card style={{ flex: 1, minWidth: "100%" }}  mb="4">
                 <Flex direction="row" style={{justifyContent: "space-between"}} >
                     <Text size="5">Supportanfrage zu Rechnungskorrektur</Text>
@@ -33,13 +36,13 @@ export function InteractionDetailPage() {
                             <DataList.Item>
                                 <DataList.Label minWidth="88px">Contact</DataList.Label>
                                 <DataList.Value>
-                                    <Link href="">Anna Müller</Link>
+                                    <LookupField title="Anna Müller" description="anna.mueller@mueller-consulting.at" targetUrl="/accounts/123" iconUrl="" iconFallback="AM"/>
                                 </DataList.Value>
                             </DataList.Item>
                             <DataList.Item>
                                 <DataList.Label minWidth="88px">Account</DataList.Label>
                                 <DataList.Value>
-                                    <Link href="">Müller Consulting GmbH</Link>
+                                    <LookupField title="Müller Consulting GmbH" description="Consulting, Austria" targetUrl="/accounts/123" iconUrl="" iconFallback="85"/>
                                 </DataList.Value>
                             </DataList.Item>
                             <DataList.Item>

@@ -34,9 +34,21 @@ namespace CustomerInsights.Database.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("classification");
 
+                    b.Property<string>("Country")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("country");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
+
+                    b.Property<string>("ExternalId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("external_id");
 
                     b.Property<string>("Industry")
                         .IsRequired()
@@ -159,6 +171,12 @@ namespace CustomerInsights.Database.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)")
                         .HasColumnName("email");
+
+                    b.Property<string>("ExternalId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("external_id");
 
                     b.Property<string>("Firstname")
                         .IsRequired()

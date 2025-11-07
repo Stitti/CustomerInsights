@@ -10,7 +10,7 @@ export function Dashboard() {
         <Box flexGrow="1" p="6">
             <DashboardHeader/>
             <MetricsTrends/>
-            <Flex gap="9" direction="column" wrap="wrap">
+            <Flex direction="column" wrap="wrap">
                 <Card style={{ flex: 1, minWidth: 320 }} variant="surface" size="3" mb="6">
                     <SentimentChart/>
                 </Card>

@@ -12,7 +12,7 @@ IResourceBuilder<PostgresServerResource> postgres = builder.AddPostgres("custome
 IResourceBuilder<PostgresDatabaseResource> customerVoiceDb = postgres.AddDatabase("customer-insights-db");
 
 IResourceBuilder<ProjectResource> customerVoiceNlpService = builder.AddProject<Projects.CustomerInsights_NlpService>("customer-insights-nlp-service");
-
+/*
 IResourceBuilder<ProjectResource> inferenceWorker = builder.AddProject<Projects.CustomerInsights_InferenceWorker>("customer-insights-inference-worker")
                                                            .WaitFor(customerVoiceDb)
                                                            .WaitFor(customerVoiceNlpService)
@@ -26,7 +26,7 @@ IResourceBuilder<ProjectResource> signalWorker = builder.AddProject<Projects.Cus
                                                         .WaitFor(cache)
                                                         .WithReference(customerVoiceDb)
                                                         .WithReference(cache);
-
+*/
 IResourceBuilder<ProjectResource> customerVoiceDocumentService = builder.AddProject<Projects.CustomerInsights_DocumentService>("customer-insights-document-service");
 
 IResourceBuilder<ProjectResource> customerVoiceApi = builder.AddProject<Projects.CustomerInsights_ApiService>("customer-insights-api-service")

@@ -1,0 +1,6 @@
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import { Card, Flex, IconButton, Select } from "@radix-ui/themes";
+import { RefreshCcw } from "lucide-react";
+export function DashboardHeader() {
+    return (_jsx(Card, { style: { flex: 1, minWidth: "100%" }, variant: "surface", mb: "4", children: _jsxs(Flex, { style: { alignItems: "center", justifyContent: "space-between", paddingLeft: "0.25rem", paddingRight: "0.25rem" }, children: [_jsxs(Select.Root, { defaultValue: "total", children: [_jsx(Select.Trigger, { variant: "soft", style: { width: '10%' } }), _jsxs(Select.Content, { variant: "soft", children: [_jsx(Select.Item, { value: "total", children: "Total" }), _jsx(Select.Item, { value: "this_week", children: "This week" }), _jsx(Select.Item, { value: "this_month", children: "This month" }), _jsx(Select.Item, { value: "this_year", children: "This year" }), _jsx(Select.Separator, {}), _jsx(Select.Item, { value: "last_week", children: "Last week" }), _jsx(Select.Item, { value: "last_month", children: "Last month" }), _jsx(Select.Item, { value: "last_year", children: "Last year" })] })] }), _jsx(IconButton, { variant: "soft", children: _jsx(RefreshCcw, { size: "20" }) })] }) }));
+}

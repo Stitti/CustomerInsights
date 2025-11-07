@@ -1,5 +1,5 @@
-import {Card, DataList, Flex, IconButton, Link, Select, Text, TextField} from "@radix-ui/themes";
-import {MailIcon, RefreshCcw, SaveIcon, TrashIcon} from "lucide-react";
+import {Card, DataList, Flex, Text} from "@radix-ui/themes";
+import LookupField from "./LookupField";
 
 export default function ModifiedCard () {
     return (
@@ -16,7 +16,7 @@ export default function ModifiedCard () {
                     <DataList.Item align="center">
                         <DataList.Label>Created By</DataList.Label>
                         <DataList.Value style={{ flex: 1 }}>
-                            <Link>Dataverse Interface</Link>
+                            <LookupField title="Dataverse Interface" description="" targetUrl="/accounts/123" iconUrl="" iconFallback="DI"/>
                         </DataList.Value>
                     </DataList.Item>
                 </DataList.Root>
@@ -32,7 +32,7 @@ export default function ModifiedCard () {
                     <DataList.Item align="center">
                         <DataList.Label>Modified By</DataList.Label>
                         <DataList.Value style={{ flex: 1 }}>
-                            <Link>Max Mustermann</Link>
+                            <LookupField title="Max Mustermann" description="max.mustermann@test-gmbh.com" targetUrl="/accounts/123" iconUrl="" iconFallback="MM"/>
                         </DataList.Value>
                     </DataList.Item>
                 </DataList.Root>

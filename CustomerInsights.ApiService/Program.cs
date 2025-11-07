@@ -56,6 +56,13 @@ builder.Services.AddCors(options =>
 
 WebApplication app = builder.Build();
 
+using IServiceScope scope = app.Services.CreateScope();
+AppDbContext dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+if (dbContext.Database.GetPendingMigrations().Any())
+{
+    dbContext.Database.Migrate();
+}
+
 app.UseCors("AllowAll");
 app.MapControllers();
 

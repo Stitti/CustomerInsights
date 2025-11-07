@@ -5,6 +5,7 @@ namespace CustomerInsights.Models;
 public class Contact
 {
     public Guid Id { get; set; }
+    public string ExternalId { get; set; } = string.Empty;
     public string Firstname { get; set; } = string.Empty;
     public string Lastname { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;

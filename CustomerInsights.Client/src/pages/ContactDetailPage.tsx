@@ -12,10 +12,13 @@ import {
 } from "@radix-ui/themes";
 import {CopyIcon, MailIcon, PhoneIcon} from "lucide-react";
 import ModifiedCard from "../components/ModifiedCard";
+import LookupField from "../components/LookupField";
+import BackButton from "../components/BackButton";
 
 export function ContactDetailPage() {
     return (
         <Box flexGrow="1" p="6">
+            <BackButton/>
             <Flex gap="3" direction="column" wrap="wrap">
                 <Card style={{ flex: 1, minWidth: "100%" }} variant="ghost" mb="4">
                     <Flex direction="row" gap="8" wrap="wrap">
@@ -84,9 +87,7 @@ export function ContactDetailPage() {
                                 <DataList.Item align="center">
                                     <DataList.Label>Company</DataList.Label>
                                     <DataList.Value style={{ flex: 1 }}>
-                                        <Link>
-                                            TechFlow Solutions AG
-                                        </Link>
+                                            <LookupField title="Tech Flow Solution GmbH" description="Software & IT, Germany" targetUrl="/accounts/123" iconUrl="" iconFallback="78"/>
                                     </DataList.Value>
                                 </DataList.Item>
 

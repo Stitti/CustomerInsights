@@ -15,10 +15,12 @@ import { CopyIcon } from "lucide-react";
 import {DashboardHeader} from "../components/DashboardHeader";
 import {MetricsTrends} from "../components/MetricsTrends";
 import ModifiedCard from "../components/ModifiedCard";
+import BackButton from "../components/BackButton";
 
 export function AccountDetailPage() {
     return (
         <Box flexGrow="1" p="6">
+            <BackButton/>
         <Flex gap="3" direction="column" wrap="wrap">
             <DashboardHeader/>
             <MetricsTrends/>

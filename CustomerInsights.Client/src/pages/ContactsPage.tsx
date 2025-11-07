@@ -1,6 +1,6 @@
 import React, {useState} from "react";
-import {Box, Button, Flex, Heading, Table, TextField} from "@radix-ui/themes";
-import {SearchIcon} from "lucide-react";
+import {Box, Button, Card, Flex, Heading, IconButton, Table, TextField} from "@radix-ui/themes";
+import {SearchIcon, XIcon} from "lucide-react";
 import {useTranslation} from "react-i18next";
 import {useNavigate} from "react-router-dom";
 import {NIL as NIL_UUID} from 'uuid';
@@ -29,24 +29,25 @@ export default function ContactsPage() {
                     <Button size="2" onClick={() => navigate(NIL_UUID)} style={{cursor: "pointer"}}>+ Add Contact</Button>
                 </Flex>
 
-                {/* Search Bar */}
-                <Flex mb="4">
-                    <TextField.Root
-                        placeholder={t("contact_page.search_contacts")}
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                        style={{
-                            flex: 1,
-                            padding: '8px 12px',
-                            borderRadius: 6,
-                            border: '1px solid var(--gray-200)',
-                        }}
-                    />
-                    <Button variant="ghost" size="2" style={{ marginLeft: 8 }}>
-                        <SearchIcon />
-                    </Button>
-                </Flex>
-                <Table.Root>
+                <Card variant="surface" style={{ marginTop: 16 }}>
+                    {/* Filter / Suche */}
+                    <Flex mb="4" gap="3" align="center" wrap="wrap">
+                        <TextField.Root
+                            placeholder={t("contact_page.search_contacts") ?? "Suchen..."}
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            style={{ flex: 1 }}
+                        >
+                            <TextField.Slot>
+                                <SearchIcon size={16} />
+                            </TextField.Slot>
+                        </TextField.Root>
+
+                        <IconButton variant="ghost" onClick={() => setSearch("")}>
+                            <XIcon color="grey" size={20} />
+                        </IconButton>
+                    </Flex>
+                    <Table.Root variant="surface" size="2">
                     <Table.Header>
                         <Table.Row>
                             <Table.ColumnHeaderCell>{t("contact_page.name")}</Table.ColumnHeaderCell>
@@ -72,6 +73,7 @@ export default function ContactsPage() {
                         }
                     </Table.Body>
                 </Table.Root>
+                </Card>
             </Box>
         </Flex>
     )

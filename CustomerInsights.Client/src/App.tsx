@@ -19,6 +19,11 @@ import {UserPage} from "./pages/UserPage";
 import AdminAppLayout from "./components/AdminAppLayout";
 import ApiKeyManagementPage from "./pages/ApiManagementPage";
 import ApiKeyDetail from "./pages/ApiKeyDetail";
+import SignalsPage from "./pages/SignalsPage";
+import SignalDetailPage from "./pages/SignalDetailPage";
+import CategoryAnalysisPage from "./pages/CategoryAnalysisPage";
+import JourneyAnalysisPage from "./pages/JourneyAnalysisPage";
+import JourneyStepDetailPage from "./pages/JourneyStepDetailPage";
 
 function App() {
     return (
@@ -38,6 +43,10 @@ function App() {
                   }
                 >
                     <Route index path="/" element={<Dashboard />} />
+                    <Route path="/signals" element={<SignalsPage />} />
+                    <Route path="/signals/:signalId" element={<SignalDetailPage />} />
+                    <Route path="/journey" element={<JourneyAnalysisPage />} />
+                    <Route path="/journey/:stepId" element={<JourneyStepDetailPage />} />
                     <Route path="/website" element={<AnalyticsDashboard />} />
                     <Route path="/contacts" element={<ContactsPage />} />
                     <Route path="/contacts/:contactId" element={<ContactDetailPage />} />
@@ -45,6 +54,7 @@ function App() {
                     <Route path="/accounts/:accountId" element={<AccountDetailPage />} />
                     <Route path="/interactions" element={<InteractionsPage />} />
                     <Route path="/interactions/:interactionId" element={<InteractionDetailPage />} />
+                    <Route path="/categories" element={<CategoryAnalysisPage/>}/>
                 </Route>
                 <Route path="/" element={
                     <AdminAppLayout/>

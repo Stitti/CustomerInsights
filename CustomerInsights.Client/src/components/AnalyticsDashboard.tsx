@@ -2,7 +2,6 @@ import React from "react";
 import { Box, Card, Flex, Text } from "@radix-ui/themes";
 import FunnelChart from "./FunnelChart";
 import PainPointMatrix from "./PainPointMatrix";
-import InteractionHeatmap from "./InteractionHeatmap";
 import ConversionArea from "./ConversionArea";
 import { funnelMock, painPointsMock, generateHeatMock, conversionMock } from "../mock/mockAnalytics";
 

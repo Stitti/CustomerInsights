@@ -6,7 +6,7 @@ import {
     Heading,
     Text,
     TextField,
-    SegmentedControl
+    SegmentedControl, Checkbox
 } from "@radix-ui/themes";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {useTranslation} from "react-i18next";
@@ -245,6 +245,17 @@ function RegisterPage() {
                             )}
                         </Flex>
                     )}
+
+                    <Flex direction="row" gap="1" align="center" style={{ marginTop: "15px" }}>
+                        <Checkbox size="1" />
+                        <Text size="2">Signup for newsletter</Text>
+                    </Flex>
+
+                    <Flex direction="row" gap="1" align="center" style={{ marginBottom: "15px" }}>
+                        <Checkbox size="1" />
+                        <Text size="2">Agree Terms and Conditions</Text>
+                    </Flex>
+
                 </Flex>
 
                 {/* Buttons */}
