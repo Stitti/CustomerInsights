@@ -9,21 +9,22 @@ import {InteractionDetailPage} from "./pages/InteractionDetailPage";
 import {AccountDetailPage} from "./pages/AccountDetailPage";
 import {ContactDetailPage} from "./pages/ContactDetailPage";
 import AnalyticsDashboard from "./components/AnalyticsDashboard";
-import LoginPage from "./pages/LoginPage";
-import RegisterPage from "./pages/RegisterPage";
-import ResetPasswordPage from "./pages/ResetPasswordPage";
-import SetNewPasswordPage from "./pages/SetNewPasswordPage";
-import ResetPasswordConfirmationPage from "./pages/ResetPasswordConfirmationPage";
+import LoginPage from "./pages/auth/LoginPage";
+import RegisterPage from "./pages/auth/RegisterPage";
+import ResetPasswordPage from "./pages/auth/ResetPasswordPage";
+import SetNewPasswordPage from "./pages/auth/SetNewPasswordPage";
+import ResetPasswordConfirmationPage from "./pages/auth/ResetPasswordConfirmationPage";
 import {ProfilePage} from "./pages/ProfilePage";
-import {UserPage} from "./pages/UserPage";
+import {UserPage} from "./pages/admin/UserPage";
 import AdminAppLayout from "./components/AdminAppLayout";
-import ApiKeyManagementPage from "./pages/ApiManagementPage";
-import ApiKeyDetail from "./pages/ApiKeyDetail";
+import ApiKeyManagementPage from "./pages/admin/ApiManagementPage";
+import ApiKeyDetail from "./pages/admin/ApiKeyDetail";
 import SignalsPage from "./pages/SignalsPage";
 import SignalDetailPage from "./pages/SignalDetailPage";
 import CategoryAnalysisPage from "./pages/CategoryAnalysisPage";
 import JourneyAnalysisPage from "./pages/JourneyAnalysisPage";
 import JourneyStepDetailPage from "./pages/JourneyStepDetailPage";
+import IntegrationsPage from "@/src/pages/admin/IntegrationsPage";
 
 function App() {
     return (
@@ -60,9 +61,9 @@ function App() {
                     <AdminAppLayout/>
                 }>
                     <Route path="admin/users" element={<UserPage/>}/>
+                    <Route path="admin/integrations" element={<IntegrationsPage/>}/>
                     <Route path="admin/apikeys" element={<ApiKeyManagementPage/>}/>
                     <Route path="admin/apikeys/:apiKeyId" element={<ApiKeyDetail/>}/>
-
                 </Route>
             </Routes>
         </BrowserRouter>

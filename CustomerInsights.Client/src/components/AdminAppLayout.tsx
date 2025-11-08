@@ -6,13 +6,14 @@ import {
     UserIcon,
     BuildingIcon,
     GlobeLockIcon,
-    MessageCircleQuestionMarkIcon,
+    MessageCircleQuestionMarkIcon, ServerIcon,
 } from 'lucide-react';
 import Header from "./Header";
 
 const items: SidebarItem[] = [
     { key: 'users',    label: 'Users',    icon: <UserIcon /> },
     { key: 'organization', label: 'Organization',   icon: <BuildingIcon /> },
+    { key: 'integrations', label: 'Integrations', icon: <ServerIcon/>},
     { key: 'apikeys',   label: 'API Keys',     icon: <GlobeLockIcon /> },
     { key: 'support',    label: 'Support',      icon: <MessageCircleQuestionMarkIcon /> },
 ];

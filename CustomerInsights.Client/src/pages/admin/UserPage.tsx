@@ -1,8 +1,8 @@
 import React from 'react';
 import {Box, Flex, Separator} from "@radix-ui/themes";
 import {useTranslation} from "react-i18next";
-import {UserList} from "../components/UserList";
-import {InvitationList} from "../components/InvitationList";
+import {UserList} from "../../components/UserList";
+import {InvitationList} from "../../components/InvitationList";
 
 export function UserPage(): any {
     const { t } = useTranslation();

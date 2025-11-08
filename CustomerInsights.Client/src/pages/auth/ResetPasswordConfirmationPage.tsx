@@ -2,7 +2,7 @@ import { Card, Flex, Heading, Text } from "@radix-ui/themes";
 import React from "react";
 import { CheckCircleIcon } from "lucide-react";
 import {useTranslation} from "react-i18next";
-import LightRays from "../components/LightRays";
+import LightRays from "../../components/LightRays";
 
 function ResetPasswordConfirmationPage() {
     const {t} = useTranslation();

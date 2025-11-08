@@ -2,7 +2,7 @@ import { Button, Card, Flex, Heading, Text, TextField } from "@radix-ui/themes";
 import { useNavigate } from "react-router-dom";
 import React, { useState } from "react";
 import {useTranslation} from "react-i18next";
-import LightRays from "../components/LightRays";
+import LightRays from "../../components/LightRays";
 
 function ResetPasswordPage() {
     const navigate = useNavigate();

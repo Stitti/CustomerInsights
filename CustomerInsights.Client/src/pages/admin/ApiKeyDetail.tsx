@@ -11,7 +11,7 @@ import {
 } from '@radix-ui/themes';
 import { ChevronLeftIcon } from 'lucide-react';
 
-import {ApiToken} from "../models/apiToken";
+import {ApiToken} from "../../models/apiToken";
 
 export default function ApiKeyDetail() {
     const navigate = useNavigate();

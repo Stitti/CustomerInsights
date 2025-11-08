@@ -2,8 +2,8 @@ import { Button, Card, Flex, Heading, Text } from "@radix-ui/themes";
 import React, { useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import {useTranslation} from "react-i18next";
-import PasswordField from "../components/PasswordField";
-import LightRays from "../components/LightRays";
+import PasswordField from "../../components/PasswordField";
+import LightRays from "../../components/LightRays";
 
 function SetNewPasswordPage() {
     const [password, setPassword] = useState("");
