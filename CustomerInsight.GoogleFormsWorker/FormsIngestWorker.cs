@@ -1,3 +1,4 @@
+using CustomerInsights.GoogleFormsWorker.Services;
 using Microsoft.Extensions.Hosting;
 using Polly;
 using Polly.Retry;
@@ -17,13 +18,7 @@ public sealed class FormsIngestWorker : BackgroundService
         .Handle<Exception>(IsTransient)
         .WaitAndRetryAsync(3, i => TimeSpan.FromSeconds(2 * i + 1));
 
-    public FormsIngestWorker(
-        TenantRepository tenants,
-        GoogleTokenService tokens,
-        FormClient forms,
-        ResponseSink sink,
-        IConfiguration cfg,
-        ILogger<FormsIngestWorker> log)
+    public FormsIngestWorker(TenantRepository tenants, GoogleTokenService tokens, FormClient forms, ResponseSink sink, IConfiguration cfg, ILogger<FormsIngestWorker> log)
     {
         _tenants = tenants;
         _tokens = tokens;
@@ -39,12 +34,20 @@ public sealed class FormsIngestWorker : BackgroundService
     {
         while (!stoppingToken.IsCancellationRequested)
         {
-            var started = DateTimeOffset.UtcNow;
-            try { await IngestAllTenants(stoppingToken); }
-            catch (Exception ex) { _log.LogError(ex, "Forms-Ingest Durchlauf fehlgeschlagen."); }
+            DateTimeOffset started = DateTimeOffset.UtcNow;
+            try
+            {
+                await IngestAllTenants(stoppingToken);
+            }
+            catch (Exception ex)
+            {
+                _log.LogError(ex, "Forms-Ingest Durchlauf fehlgeschlagen.");
+            }
 
-            var delay = _interval - (DateTimeOffset.UtcNow - started);
-            if (delay < TimeSpan.Zero) delay = TimeSpan.Zero;
+            TimeSpan delay = _interval - (DateTimeOffset.UtcNow - started);
+            if (delay < TimeSpan.Zero) 
+                delay = TimeSpan.Zero;
+            
             await Task.Delay(delay, stoppingToken);
         }
     }
@@ -52,7 +55,7 @@ public sealed class FormsIngestWorker : BackgroundService
     private async Task IngestAllTenants(CancellationToken ct)
     {
         var tenants = await _tenants.GetActiveTenantsAsync(ct);
-        using var sem = new SemaphoreSlim(_maxParallel);
+        using SemaphoreSlim sem = new SemaphoreSlim(_maxParallel);
 
         var tasks = tenants.Select(async tenant =>
         {
@@ -74,14 +77,15 @@ public sealed class FormsIngestWorker : BackgroundService
     private async Task IngestTenant(Guid tenantId, CancellationToken ct)
     {
         var conn = await _tenants.GetGoogleConnectionAsync(tenantId, ct);
-        if (conn is null) return;
+        if (conn is null) 
+            return;
 
         var accessToken = await _tokens.GetAccessTokenAsync(conn.RefreshToken, conn.Scopes, ct);
 
         var forms = await _tenants.GetFormsAsync(tenantId, ct);
         foreach (var (formId, lastSynced) in forms)
         {
-            var sinceUtc = lastSynced ?? DateTimeOffset.UtcNow.AddDays(-7); // initialer Backfill: 7 Tage
+            DateTimeOffset sinceUtc = lastSynced ?? DateTimeOffset.UtcNow.AddDays(-7); // initialer Backfill: 7 Tage
             string? pageToken = null;
             DateTimeOffset maxSeenTimestamp = sinceUtc;
 
@@ -94,14 +98,22 @@ public sealed class FormsIngestWorker : BackgroundService
                 {
                     await _sink.UpsertResponsesAsync(tenantId, formId, responses, ct);
                     // höchstes „Letzte Aktivität“-Datum tracken
-                    foreach (var r in responses)
-                        if (r.LastSubmittedTime is { } t && t > maxSeenTimestamp) maxSeenTimestamp = t;
-                        else if (r.CreateTime > maxSeenTimestamp) maxSeenTimestamp = r.CreateTime;
+                    foreach (FormResponseRow response in responses)
+                    {
+                        if (response.LastSubmittedTime is { } t && t > maxSeenTimestamp)
+                        {
+                            maxSeenTimestamp = t;
+                        }
+                        else if (response.CreateTime > maxSeenTimestamp)
+                        {
+                            maxSeenTimestamp = response.CreateTime;
+                        }
+                    }
                 }
 
                 pageToken = next;
             }
-            while (!string.IsNullOrEmpty(pageToken));
+            while (string.IsNullOrEmpty(pageToken) == false);
 
             // Nur wenn wir wirklich was Neues gesehen haben, Synctime vorziehen
             if (maxSeenTimestamp > sinceUtc)

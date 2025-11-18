@@ -1,12 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Net.Http;
 using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 using CustomerInsights.RagService.Models;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 
 namespace CustomerInsights.RagService.Services
 {
@@ -16,9 +10,7 @@ namespace CustomerInsights.RagService.Services
         private readonly JsonSerializerOptions _jsonSerializerOptions;
         private readonly ILogger<EmbeddingClient> _logger;
 
-        public EmbeddingClient(
-            IHttpClientFactory httpClientFactory,
-            ILogger<EmbeddingClient> logger)
+        public EmbeddingClient(IHttpClientFactory httpClientFactory, ILogger<EmbeddingClient> logger)
         {
             _httpClientFactory = httpClientFactory;
 
@@ -42,7 +34,7 @@ namespace CustomerInsights.RagService.Services
 
             HttpResponseMessage response = await httpClient.PostAsync("/embedding/embed", content);
 
-            if (!response.IsSuccessStatusCode)
+            if (response.IsSuccessStatusCode == false)
             {
                 string errorBody = await response.Content.ReadAsStringAsync();
                 _logger.LogError("Embedding request failed: {Error}", errorBody);
@@ -53,9 +45,7 @@ namespace CustomerInsights.RagService.Services
             EmbeddingResponse? embeddingResponse =
                 JsonSerializer.Deserialize<EmbeddingResponse>(responseJson, _jsonSerializerOptions);
 
-            if (embeddingResponse == null ||
-                embeddingResponse.Embeddings == null ||
-                embeddingResponse.Embeddings.Count == 0)
+            if (embeddingResponse == null || embeddingResponse.Embeddings == null || embeddingResponse.Embeddings.Count == 0)
             {
                 throw new InvalidOperationException("Embedding response is empty.");
             }

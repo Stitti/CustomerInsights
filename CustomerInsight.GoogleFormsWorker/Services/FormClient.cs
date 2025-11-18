@@ -14,22 +14,23 @@ namespace CustomerInsights.GoogleFormsWorker.Services
                 ApplicationName = "YourSaaS-FormsIngest"
             });
 
-            var req = service.Forms.Responses.List(formId);
+            FormsResource.ResponsesResource.ListRequest req = service.Forms.Responses.List(formId);
             req.Filter = $"timestamp >= {sinceUtc:yyyy-MM-ddTHH:mm:ssZ}";
             req.PageSize = pageSize;
             req.PageToken = pageToken;
 
-            var resp = await req.ExecuteAsync(ct);
+            ListFormResponsesResponse resp = await req.ExecuteAsync(ct);
 
-            var rows = new List<FormResponseRow>();
-            foreach (var r in resp.Responses ?? new List<FormResponse>())
+            List<FormResponseRow> rows = new List<FormResponseRow>();
+            foreach (FormResponse r in resp.Responses ?? new List<FormResponse>())
             {
                 rows.Add(new FormResponseRow(
-                    ResponseId: r.ResponseId!,
-                    CreateTime: Parse(r.CreateTime),
-                    LastSubmittedTime: r.LastSubmittedTime is null ? null : Parse(r.LastSubmittedTime),
-                    Answers: FlattenAnswers(r)
-                ));
+                {
+                    ResponseId = r.ResponseId!,
+                    CreateTime = Parse(r.CreateTime),
+                    LastSubmittedTime = r.LastSubmittedTime is null ? null : Parse(r.LastSubmittedTime),
+                    Answers = FlattenAnswers(r)
+                });
             }
 
             return (rows, resp.NextPageToken);

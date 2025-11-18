@@ -1,4 +1,3 @@
-using System.Threading.Tasks;
 using CustomerInsights.RagService.Models;
 using CustomerInsights.RagService.Services;
 using Microsoft.AspNetCore.Mvc;

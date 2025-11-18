@@ -1,26 +1,35 @@
 using System;
 using CustomerInsights.RagService.Services;
+using CustomerInsights.ServiceDefaults;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.OpenApi.Models;
+using Serilog;
 
 namespace CustomerInsights.RagService
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
-            WebApplicationBuilder webApplicationBuilder = WebApplication.CreateBuilder(args);
+            WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+            builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+            builder.AddServiceDefaults();
 
-            IConfiguration configuration = webApplicationBuilder.Configuration;
+            IConfiguration configuration = builder.Configuration;
+            builder.AddLogging();
 
-            webApplicationBuilder.Services.AddControllers();
-            webApplicationBuilder.Services.AddEndpointsApiExplorer();
-            webApplicationBuilder.Services.AddSwaggerGen();
+            builder.Services.AddControllers();
+            builder.Services.AddEndpointsApiExplorer();
+            builder.Services.AddSwaggerGen(o =>
+            {
+                o.SwaggerDoc("v1", new OpenApiInfo { Title = "Internal API", Version = "v1" });
+            });
 
             // HttpClients
-            webApplicationBuilder.Services.AddHttpClient(
+            builder.Services.AddHttpClient(
                 "EmbeddingClient",
                 httpClient =>
                 {
@@ -33,7 +42,7 @@ namespace CustomerInsights.RagService
                     httpClient.BaseAddress = new Uri(baseUrlFromConfig);
                 });
 
-            webApplicationBuilder.Services.AddHttpClient(
+            builder.Services.AddHttpClient(
                 "ChatClient",
                 httpClient =>
                 {
@@ -47,12 +56,12 @@ namespace CustomerInsights.RagService
                 });
 
             // Services
-            webApplicationBuilder.Services.AddScoped<EmbeddingClient>();
-            webApplicationBuilder.Services.AddScoped<OllamaChatClient>();
-            webApplicationBuilder.Services.AddScoped<InteractionRepository>();
-            webApplicationBuilder.Services.AddScoped<RagQueryService>();
+            builder.Services.AddScoped<EmbeddingClient>();
+            builder.Services.AddScoped<OllamaChatClient>();
+            builder.Services.AddScoped<InteractionRepository>();
+            builder.Services.AddScoped<RagQueryService>();
 
-            WebApplication webApplication = webApplicationBuilder.Build();
+            WebApplication webApplication = builder.Build();
 
             if (webApplication.Environment.IsDevelopment())
             {
@@ -62,7 +71,20 @@ namespace CustomerInsights.RagService
 
             webApplication.UseAuthorization();
             webApplication.MapControllers();
-            webApplication.Run();
-        }
+            try
+            {
+                Log.Information("Starting application...");
+                await webApplication.RunAsync();
+            }
+            catch (Exception ex)
+            {
+                Log.Fatal(ex, "The application terminated unexpectedly.");
+                throw;
+            }
+            finally
+            {
+                Log.Information("Application is shutting down...");
+                Log.CloseAndFlush();
+            }        }
     }
 }

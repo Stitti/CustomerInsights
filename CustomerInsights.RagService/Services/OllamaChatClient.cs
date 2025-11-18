@@ -17,10 +17,7 @@ namespace CustomerInsights.RagService.Services
         private readonly JsonSerializerOptions _jsonSerializerOptions;
         private readonly ILogger<OllamaChatClient> _logger;
 
-        public OllamaChatClient(
-            IHttpClientFactory httpClientFactory,
-            IConfiguration configuration,
-            ILogger<OllamaChatClient> logger)
+        public OllamaChatClient(IHttpClientFactory httpClientFactory, IConfiguration configuration, ILogger<OllamaChatClient> logger)
         {
             _httpClientFactory = httpClientFactory;
             _logger = logger;
@@ -78,7 +75,7 @@ namespace CustomerInsights.RagService.Services
 
             HttpResponseMessage response = await httpClient.PostAsync("/api/generate", content);
 
-            if (!response.IsSuccessStatusCode)
+            if (response.IsSuccessStatusCode == false)
             {
                 string errorBody = await response.Content.ReadAsStringAsync();
                 _logger.LogError("Chat request failed: {Error}", errorBody);
@@ -88,13 +85,12 @@ namespace CustomerInsights.RagService.Services
             string responseJson = await response.Content.ReadAsStringAsync();
             JsonDocument jsonDocument = JsonDocument.Parse(responseJson);
 
-            if (!jsonDocument.RootElement.TryGetProperty("response", out JsonElement responseElement))
+            if (jsonDocument.RootElement.TryGetProperty("response", out JsonElement responseElement) == false)
             {
                 throw new InvalidOperationException("Chat response missing 'response' field.");
             }
 
-            string? answer = responseElement.GetString();
-            return answer ?? string.Empty;
+            return responseElement.GetString() ?? string.Empty;
         }
     }
 }
