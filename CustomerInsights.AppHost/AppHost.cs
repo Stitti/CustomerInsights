@@ -4,6 +4,15 @@ IResourceBuilder<RedisResource> cache = builder.AddRedis("customer-insights-cach
                                                .WithRedisInsight()
                                                .WithRedisCommander();
 
+IResourceBuilder<RabbitMQServerResource> rabbitmq = builder.AddRabbitMQ("messaging");
+
+
+IResourceBuilder<ContainerResource> presidioAnalyzer = builder.AddContainer("presidio-analyzer", "mcr.microsoft.com/presidio-analyzer", "latest")
+                                                              .WithHttpEndpoint(port: 5001, targetPort: 3000);
+
+IResourceBuilder<ContainerResource> presidioAnonymizer = builder.AddContainer("presidio-anonymizer", "mcr.microsoft.com/presidio-anonymizer", "latest")
+                                                                .WithHttpEndpoint(port: 5002, targetPort: 3000);
+
 IResourceBuilder<PostgresServerResource> postgres = builder.AddPostgres("customer-insights-postgres")
                                                            //.WithDataVolume()
                                                            .WithPgAdmin()

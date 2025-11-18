@@ -4,10 +4,11 @@ using CustomerInsights.Models;
 using CustomerInsights.SignalWorker.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using System.Collections.Generic;
+using System;
 using System.Reflection.Emit;
 
 namespace CustomerInsights.Database;
+
 public class AppDbContext : DbContext
 {
     public DbSet<Account> Accounts => Set<Account>();
@@ -36,34 +37,30 @@ public class AppDbContext : DbContext
             cfg.Property(a => a.ParentAccountId).HasColumnName("parent_account_id");
             cfg.Property(a => a.Industry).HasColumnName("industry").HasMaxLength(128);
             cfg.Property(a => a.Country).HasColumnName("country").HasMaxLength(64);
-            cfg.Property(a => a.Classification)
-               .HasColumnName("classification")
-               .HasConversion<int>(); // Enum -> int
+            cfg.Property(a => a.Classification).HasColumnName("classification").HasConversion<int>();
             cfg.Property(a => a.CreatedAt).HasColumnName("created_at");
 
-            // Self-Join ParentAccount
             cfg.HasOne(a => a.ParentAccount)
                .WithMany()
                .HasForeignKey(a => a.ParentAccountId)
                .IsRequired(false)
                .OnDelete(DeleteBehavior.Restrict);
 
-            // 1:1 SatisfactionState (PK=FK auf AccountId)
             cfg.HasOne(a => a.SatisfactionState)
                .WithOne()
                .HasForeignKey<SatisfactionState>(s => s.AccountId)
                .OnDelete(DeleteBehavior.Cascade);
 
-            // 1:n Contacts
             cfg.HasMany(a => a.Contacts)
                .WithOne(c => c.Account)
-               .HasForeignKey("account_id")         // Shadow-FK, weil Contact kein AccountId-Property hat
+               .HasForeignKey(c => c.AccountId)
                .OnDelete(DeleteBehavior.Cascade);
 
-            // 1:n Interactions (über AccountId in Interaction)
+            // Optional: Inverse für Interactions (neu)
             cfg.HasMany(a => a.Interactions)
-               .WithOne()
+               .WithOne(i => i.Account)
                .HasForeignKey(i => i.AccountId)
+               .IsRequired(false)
                .OnDelete(DeleteBehavior.SetNull);
         });
 
@@ -81,18 +78,19 @@ public class AppDbContext : DbContext
             cfg.Property(c => c.Phone).HasColumnName("phone").HasMaxLength(64);
             cfg.Property(c => c.CreatedAt).HasColumnName("created_at");
 
-            // FK auf Account via Shadow Property
-            cfg.Property<Guid>("account_id");
-            cfg.HasIndex("account_id");
+            cfg.Property(c => c.AccountId).HasColumnName("account_id");
+            cfg.HasIndex(c => c.AccountId);
+
             cfg.HasOne(c => c.Account)
                .WithMany(a => a.Contacts)
-               .HasForeignKey("account_id")
+               .HasForeignKey(c => c.AccountId)
                .OnDelete(DeleteBehavior.Cascade);
 
-            // 1:n Interactions (über ContactId in Interaction)
+            // Neu: korrektes Inverse zu Interaction.Contact
             cfg.HasMany(c => c.Interactions)
-               .WithOne()
+               .WithOne(i => i.Contact)
                .HasForeignKey(i => i.ContactId)
+               .IsRequired(false)
                .OnDelete(DeleteBehavior.SetNull);
         });
 
@@ -119,11 +117,24 @@ public class AppDbContext : DbContext
 
             cfg.Property(i => i.Subject).HasColumnName("subject").HasMaxLength(512);
             cfg.Property(i => i.Text).HasColumnName("text");
-
             cfg.Property(i => i.Meta).HasColumnName("meta");
 
             cfg.HasIndex(i => i.AccountId);
             cfg.HasIndex(i => i.ContactId);
+
+            // Neu: Beziehung Interaction → Account (optional, SET NULL)
+            cfg.HasOne(i => i.Account)
+               .WithMany(a => a.Interactions)
+               .HasForeignKey(i => i.AccountId)
+               .IsRequired(false)
+               .OnDelete(DeleteBehavior.SetNull);
+
+            // Neu: Beziehung Interaction → Contact (optional, SET NULL)
+            cfg.HasOne(i => i.Contact)
+               .WithMany(c => c.Interactions)
+               .HasForeignKey(i => i.ContactId)
+               .IsRequired(false)
+               .OnDelete(DeleteBehavior.SetNull);
 
             // 1:1 Interaction -> TextInference (PK=FK auf TextInference.InteractionId)
             cfg.HasOne(i => i.TextInference)
@@ -161,22 +172,19 @@ public class AppDbContext : DbContext
             cfg.Property(ti => ti.InferredAt).HasColumnName("inferred_at");
             cfg.Property(ti => ti.Extra).HasColumnName("extra"); // JSON
 
-            // Owned: Aspects -> text_inference_aspects
             cfg.OwnsMany(ti => ti.Aspects, oc =>
             {
                 oc.ToTable("text_inference_aspects");
-                oc.WithOwner().HasForeignKey("text_inference_id"); // FK auf text_inference.interaction_id
+                oc.WithOwner().HasForeignKey("text_inference_id");
                 oc.Property<Guid>("id");
                 oc.HasKey("id");
 
                 oc.Property(a => a.AspectName).HasColumnName("aspect_name").HasMaxLength(128);
                 oc.Property(a => a.Score).HasColumnName("score");
 
-                // Model hat eine TextInferenceId-Property; die brauchen wir als owned nicht -> ignorieren
                 oc.Ignore(a => a.TextInferenceId);
             });
 
-            // Owned: Emotions -> text_inference_emotions
             cfg.OwnsMany(ti => ti.Emotions, oc =>
             {
                 oc.ToTable("text_inference_emotions");
@@ -214,10 +222,16 @@ public class AppDbContext : DbContext
             cfg.Property(s => s.Id).HasColumnName("id");
             cfg.Property(s => s.TenantId).HasColumnName("tenant_id");
             cfg.Property(s => s.AccountId).HasColumnName("account_id");
+
+            cfg.HasOne(s => s.Account)
+               .WithMany(a => a.Signals)
+               .HasForeignKey(s => s.AccountId)
+               .OnDelete(DeleteBehavior.Cascade);
+
             cfg.Property(s => s.Type).HasColumnName("type").HasMaxLength(64);
             cfg.Property(s => s.Severity)
                .HasColumnName("severity")
-               .HasConversion<string>() // Enum -> string
+               .HasConversion<string>()
                .HasMaxLength(32);
             cfg.Property(s => s.CreatedUtc).HasColumnName("created_utc");
             cfg.Property(s => s.TtlDays).HasColumnName("ttl_days");

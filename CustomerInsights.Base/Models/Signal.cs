@@ -1,4 +1,5 @@
-﻿using CustomerInsights.ApiService.Models.Enums;
+﻿using CustomerInsights.ApiService.Models;
+using CustomerInsights.ApiService.Models.Enums;
 
 namespace CustomerInsights.SignalWorker.Models
 {
@@ -7,6 +8,7 @@ namespace CustomerInsights.SignalWorker.Models
         public Guid Id { get; set; } = Guid.NewGuid();
         public Guid TenantId { get; set; }
         public Guid AccountId { get; set; }
+        public Account Account { get; set; } = new Account();
         public string Type { get; set; } = "si_below_threshold";
         public SeverityLevel Severity { get; set; } = SeverityLevel.Medium;
         public DateTime CreatedUtc { get; set; } = DateTime.UtcNow;

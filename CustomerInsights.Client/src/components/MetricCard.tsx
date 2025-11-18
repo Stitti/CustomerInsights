@@ -1,25 +1,40 @@
-import {Badge, Card, Flex, Text} from "@radix-ui/themes";
+import { Badge, Card, Flex, Skeleton, Text } from "@radix-ui/themes";
 
 interface Props {
     title: string;
-    value: string;
-    trend: number;
+    value?: string | number;
+    trend?: number | null;
+    loading?: boolean;
 }
 
-export function MetricCard({ title, value, trend }: Props) {
+export function MetricCard({ title, value, trend, loading }: Props) {
+    const isUp = (trend ?? 0) >= 0;
 
     return (
         <Card style={{ flex: 1, padding: "1rem" }} variant="surface" mb="4">
-            <Text size="2" weight="bold">
-                {title}
-            </Text>
+            <Text size="2" weight="bold">{title}</Text>
 
             <Flex style={{ justifyContent: "space-between", marginTop: "1rem" }}>
-                <Text size="5">{value}</Text>
-                <Badge color="green">
-                    <Text>{trend}%</Text>
-                </Badge>
+                {loading ? (
+                    <Skeleton>
+                        <Text size="5">000</Text>
+                    </Skeleton>
+                ) : (
+                    <Text size="5">{value ?? "—"}</Text>
+                )}
+
+                {loading ? (
+                    <Skeleton>
+                        <Badge>+0%</Badge>
+                    </Skeleton>
+                ) : typeof trend === "number" ? (
+                    isUp ? (
+                        <Badge color="green"><Text>+{trend}%</Text></Badge>
+                    ) : (
+                        <Badge color="red"><Text>{trend}%</Text></Badge>
+                    )
+                ) : null}
             </Flex>
         </Card>
-    )
+    );
 }

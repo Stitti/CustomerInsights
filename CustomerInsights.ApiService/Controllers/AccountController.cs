@@ -1,6 +1,10 @@
-﻿using CustomerInsights.ApiService.Models.Contracts;
+﻿using CustomerInsights.ApiService.Models;
+using CustomerInsights.ApiService.Models.Contracts;
+using CustomerInsights.ApiService.Models.DTOs;
 using CustomerInsights.ApiService.Services;
+using CustomerInsights.Models.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace CustomerInsights.ApiService.Controllers;
 
@@ -25,8 +29,8 @@ public sealed class AccountController : ControllerBase
         try
         {
             _logger.LogInformation("Fetching all accounts for tenant {TenantId}", tenantId);
-            await _accountService.GetAllAccountsAsync();
-            return Accepted();
+            IEnumerable<AccountListDto> accounts = await _accountService.GetAllAccountsAsync();
+            return Ok(accounts);
         }
         catch (Exception ex)
         {
@@ -47,8 +51,8 @@ public sealed class AccountController : ControllerBase
         try
         {
             _logger.LogInformation("Fetching all account {ContactId} for tenant {TenantId}", id, tenantId);
-            await _accountService.GetAccountById(id);
-            return Accepted();
+            AccountDto? account = await _accountService.GetAccountById(id);
+            return Ok(account ?? new AccountDto());
         }
         catch (Exception ex)
         {
@@ -94,6 +98,68 @@ public sealed class AccountController : ControllerBase
             {
                 Title = "Creation Failed",
                 Detail = "An error occurred while processing the account",
+                Status = StatusCodes.Status500InternalServerError
+            });
+        }
+    }
+
+    [HttpPatch("{id}")]
+    public async Task<IActionResult> Patch(Guid id, [FromBody] UpdateAccountRequest request)
+    {
+        Guid tenantId = Guid.Empty;
+
+        if (id == Guid.Empty)
+            return BadRequest("Invalid account id");
+
+        try
+        {
+            _logger.LogInformation("Patching account {AccountId} for tenant {TenantId}", id, tenantId);
+            bool success = await _accountService.PatchAsync(id, request);
+            return success ? Accepted() : BadRequest();
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning(ex, "Invalid account data");
+            return BadRequest(new ProblemDetails
+            {
+                Title = "Invalid Data",
+                Detail = ex.Message,
+                Status = StatusCodes.Status400BadRequest
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to patch account {AccountId}", id);
+            return StatusCode(StatusCodes.Status500InternalServerError, new ProblemDetails
+            {
+                Title = "Patching Failed",
+                Detail = "An error occurred while patching the account",
+                Status = StatusCodes.Status500InternalServerError
+            });
+        }
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(Guid id)
+    {
+        Guid tenantId = Guid.Empty;
+
+        if (id == Guid.Empty)
+            return BadRequest("Invalid account id");
+
+        try
+        {
+            _logger.LogInformation("Deleting account {AccountId} for tenant {TenantId}", id, tenantId);
+            bool success = await _accountService.DeleteAsync(id);
+            return success ? Accepted() : BadRequest();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to delete account {AccountId}", id);
+            return StatusCode(StatusCodes.Status500InternalServerError, new ProblemDetails
+            {
+                Title = "Deletion Failed",
+                Detail = "An error occurred while deleting the account",
                 Status = StatusCodes.Status500InternalServerError
             });
         }

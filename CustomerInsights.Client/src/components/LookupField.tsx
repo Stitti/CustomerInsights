@@ -6,14 +6,15 @@ interface Props {
     targetUrl: string,
     iconUrl: string | null,
     iconFallback: string,
+    size?: "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
 }
 
-export default function LookupField({ title, description, targetUrl, iconUrl, iconFallback }: Props) {
+export default function LookupField({ title, description, targetUrl, iconUrl, iconFallback, size }: Props) {
 
     return (
             <HoverCard.Root>
                 <HoverCard.Trigger>
-                    <Link href={targetUrl}>
+                    <Link size={size} href={targetUrl}>
                         {title}
                     </Link>
                 </HoverCard.Trigger>

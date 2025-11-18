@@ -4,7 +4,7 @@ import {useTranslation} from "react-i18next";
 import PersonalInformation from "../components/PersonalInformation";
 import PasswordReset from "../components/PasswordReset";
 import ThemePicker from "../components/ThemePicker";
-import Header from "../components/Header";
+import Header from "../components/headers/Header.tsx";
 //import {useCurrentUser} from "../services/useUsers";
 
 export function ProfilePage(): any {

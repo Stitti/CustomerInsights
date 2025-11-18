@@ -1,5 +1,7 @@
 ﻿using CustomerInsights.ApiService.Models;
+using CustomerInsights.ApiService.Models.Contracts;
 using CustomerInsights.ApiService.Models.DTOs;
+using CustomerInsights.ApiService.Patching;
 using CustomerInsights.Database;
 using CustomerInsights.Models;
 using Microsoft.EntityFrameworkCore;
@@ -78,35 +80,67 @@ public sealed class ContactRepository
         return contacts;
     }
 
-    public async Task<Contact?> GetByIdWithAllAsync(Guid contactId, bool singleQuery = false, bool includeParentAccount = false, CancellationToken ct = default)
+    public async Task<ContactDto?> GetByIdWithAllAsync(Guid contactId, bool singleQuery = false, bool includeParentAccount = false, CancellationToken ct = default)
     {
+        if (contactId == Guid.Empty)
+            return null;
+
         // Basis
-        IQueryable<Contact> query = _db.Contacts
+        IQueryable<ContactDto> query = _db.Contacts
             .AsNoTracking()
-            .Where(c => c.Id == contactId);
-
-        query = singleQuery ? query.AsSingleQuery() : query.AsSplitQuery();
-
-        query = includeParentAccount
-            ? query
-                .Include(c => c.Account)
-                    .ThenInclude(a => a.ParentAccount)
-            : query
-                .Include(c => c.Account);
-
-        query = query
+            .Where(c => c.Id == contactId)
+            .Include(c => c.Account)
             .Include(c => c.Interactions.OrderByDescending(i => i.OccurredAt))
                 .ThenInclude(i => i.TextInference)
                     .ThenInclude(ti => ti.Aspects)
             .Include(c => c.Interactions.OrderByDescending(i => i.OccurredAt))
                 .ThenInclude(i => i.TextInference)
-                    .ThenInclude(ti => ti.Emotions);
+                    .ThenInclude(ti => ti.Emotions)
+            .Select(c => new ContactDto
+            {
+                Id = c.Id,
+                ExternalId = c.ExternalId,
+                Firstname = c.Firstname,
+                Lastname = c.Lastname,
+                Email = c.Email,
+                Phone = c.Phone,
+                CreatedAt = c.CreatedAt,
+                Account = c.Account != null ? new AccountListDto { Id = c.Account.Id, Name = c.Account.Name } : null,
+                Interactions = c.Interactions
+            });
 
-        var contact = await query.SingleOrDefaultAsync(ct);
+        ContactDto? contact = await query.SingleOrDefaultAsync(ct);
 
         _logger.LogDebug("Loaded contact {Id} (account: {Account}, interactions: {Cnt})",
             contact?.Id, contact?.Account?.Name, contact?.Interactions.Count);
 
         return contact;
+    }
+
+    public async Task<bool> Patch(Guid id, UpdateContactRequest request)
+    {
+        Contact? contact = await _db.Contacts.FirstOrDefaultAsync(x => x.Id == id);
+        if (contact == null)
+            return false;
+
+        contact.ApplyPatch(request);
+
+        try
+        {
+            await _db.SaveChangesAsync();
+            return true;
+        }
+        catch (Exception ex)
+        {
+            return false;
+        }
+    }
+
+    public async Task<bool> Delete(Guid id)
+    {
+        int affectedRows = await _db.Contacts.Where(x => x.Id == id)
+                                             .ExecuteDeleteAsync();
+
+        return affectedRows > 0;
     }
 }

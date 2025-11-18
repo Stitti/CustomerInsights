@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import "@radix-ui/themes/styles.css";
 import App from "./App";
 import './i18n';
+import './css/global.css'
 import {ThemeProvider} from "./theme/ThemeProvider";
 
 function Root() {

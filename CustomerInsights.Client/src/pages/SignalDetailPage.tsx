@@ -23,6 +23,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import BackButton from "../components/BackButton";
+import Header from "../components/headers/Header";
+import LookupField from "../components/LookupField";
 
 // -----------------------------
 // Types & Mock Signal Data
@@ -144,7 +146,7 @@ export default function SignalDetailPage() {
 
     return (
         <Box p="6" flexGrow="1">
-            <BackButton/>
+            <Header title={signal.title} showSave={true} showRefresh={true}/>
             <Card variant="surface" size="3">
                 <Flex justify="between" align="center" mb="3">
                     <Flex align="center" gap="3">
@@ -157,7 +159,8 @@ export default function SignalDetailPage() {
                 </Flex>
 
                 <Text color="gray" size="2" mb="1">
-                    {signal.account} • Erst erkannt: {signal.createdAt}
+                    <LookupField title={signal.account} description={""} targetUrl={""} iconUrl={""} iconFallback={""}/>
+                     • Erst erkannt: {signal.createdAt}
                 </Text>
 
                 <Separator size="4" my="4" />
@@ -227,17 +230,6 @@ export default function SignalDetailPage() {
                         lineHeight: "1.5"
                     }}
                 />
-                <Flex justify="end" mt="2" align="center" gap="3">
-                    {saved && (
-                        <Flex align="center" gap="2">
-                            <Check size={16} color="var(--grass-11)" />
-                            <Text color="green">Gespeichert</Text>
-                        </Flex>
-                    )}
-                    <Button onClick={handleSaveNote} variant="soft">
-                        Speichern
-                    </Button>
-                </Flex>
 
                 <Separator size="4" my="4" />
 
@@ -255,7 +247,7 @@ export default function SignalDetailPage() {
                     </Table.Header>
                     <Table.Body>
                         {signal.relatedTickets.map((t) => (
-                            <Table.Row key={t.id}>
+                            <Table.Row key={t.id} onClick={() => navigate(`/interactions/${t.id}`)} style={{ cursor: "pointer" }}>
                                 <Table.Cell>{t.date}</Table.Cell>
                                 <Table.Cell>{t.type}</Table.Cell>
                                 <Table.Cell>

@@ -1,5 +1,7 @@
 ﻿using CustomerInsights.ApiService.Database.Repositories;
 using CustomerInsights.ApiService.Models.Contracts;
+using CustomerInsights.ApiService.Models.DTOs;
+using CustomerInsights.ApiService.Models.Enums;
 using CustomerInsights.ApiService.Utils;
 using CustomerInsights.Models;
 
@@ -19,12 +21,12 @@ namespace CustomerInsights.ApiService.Services
             _logger = logger;
         }
 
-        public async Task<Interaction?> GetInteractionByIdAsync(Guid id)
+        public async Task<InteractionDto?> GetInteractionByIdAsync(Guid id)
         {
             return await _repository.GetInteractionByIdAsync(id);
         }
 
-        public async Task<IEnumerable<Interaction>> GetAllInteractionsAsync()
+        public async Task<IEnumerable<InteractionListDto>> GetAllInteractionsAsync()
         {
             return await _repository.GetAllInteractionsAsync();
         }
@@ -98,9 +100,19 @@ namespace CustomerInsights.ApiService.Services
             };
         }
 
-        internal async Task<IReadOnlyList<ChannelCount>> GetTopChannelsAsync(Period period, DateTimeOffset utcNow, DateTimeOffset? fromUtc, DateTimeOffset? toUtc)
+        internal async Task<IReadOnlyList<ChannelCount>> GetTopChannelsAsync(TimeInterval period)
         {
-            return await _repository.GetTopChannelsAsync(period, utcNow, fromUtc, toUtc);
+            return await _repository.GetTopChannelsAsync(period);
+        }
+
+        public async Task<bool> DeleteAsync(Guid id)
+        {
+            return await _repository.DeleteAsync(id);
+        }
+
+        internal async Task<bool> PatchAsync(Guid id, UpdateInteractionRequest request)
+        {
+            return await _repository.PatchAsync(id, request);
         }
     }
 }

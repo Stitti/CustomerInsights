@@ -20,7 +20,7 @@ public sealed class ContactService
         return await _repository.GetAllWithAccountAsync();
     }
 
-    public async Task<Contact?> GetContactById(Guid id)
+    public async Task<ContactDto?> GetContactById(Guid id)
     {
         return await _repository.GetByIdWithAllAsync(id);
     }
@@ -36,6 +36,16 @@ public sealed class ContactService
             CreatedAt = DateTime.UtcNow,
         };
 
-        return await _repository.CreateAsync(contact, request.AccountId);
+        return await _repository.CreateAsync(contact, request.AccountId.GetValueOrDefault());
+    }
+
+    public async Task<bool> PatchAsync(Guid id, UpdateContactRequest request)
+    {
+        return await _repository.Patch(id, request);
+    }
+
+    public async Task<bool> DeleteAsync(Guid id)
+    {
+        return await _repository.Delete(id);
     }
 }

@@ -1,5 +1,8 @@
-﻿using CustomerInsights.ApiService.Models;
+﻿using Azure.Core;
+using CustomerInsights.ApiService.Models;
+using CustomerInsights.ApiService.Models.Contracts;
 using CustomerInsights.ApiService.Models.DTOs;
+using CustomerInsights.ApiService.Patching;
 using CustomerInsights.Database;
 using Microsoft.EntityFrameworkCore;
 
@@ -52,6 +55,7 @@ public sealed class AccountRepository
                 Id = a.Id,
                 Name = a.Name,
                 Industry = a.Industry,
+                Country = a.Country,
                 Classification = a.Classification,
                 CreatedAt = a.CreatedAt,
                 ParentAccountId = a.ParentAccount != null ? a.ParentAccount.Id : (Guid?)null,
@@ -64,8 +68,11 @@ public sealed class AccountRepository
         return accounts;
     }
 
-    public async Task<Account?> GetByIdWithDetailsAsync(Guid accountId, int interactionsSkip = 0, int interactionsTake = 200, CancellationToken ct = default)
+    public async Task<AccountDto?> GetByIdWithDetailsAsync(Guid accountId, int interactionsSkip = 0, int interactionsTake = 200, CancellationToken ct = default)
     {
+        if (accountId == Guid.Empty)
+            return null;
+
         // Grundquery
         var query = _db.Accounts
             .AsNoTracking()
@@ -85,12 +92,61 @@ public sealed class AccountRepository
                 .Skip(interactionsSkip)
                 .Take(interactionsTake))
                 .ThenInclude(i => i.TextInference)
-                    .ThenInclude(ti => ti.Emotions);
+                    .ThenInclude(ti => ti.Emotions)
+            .Select(a => new AccountDto
+            {
+                Id = a.Id,
+                ExternalId = a.ExternalId,
+                Name = a.Name,
+                Classification = a.Classification,
+                Country = a.Country,
+                Industry = a.Industry,
+                ParentAccount = a.ParentAccount != null ? new AccountListDto { Id = a.ParentAccount.Id, Name = a.ParentAccount.Name } : null,
+                CreatedAt = a.CreatedAt,
+                SatisfactionState = a.SatisfactionState,
+                Contacts = a.Contacts != null ? a.Contacts.Select(c => new ContactListDto
+                {
+                    Id = c.Id,
+                    Firstname = c.Firstname,
+                    Lastname = c.Lastname,
+                    Email = c.Email,
+                    Phone = c.Phone,
+                    CreatedAt = c.CreatedAt
+                }).ToList() : new List<ContactListDto>()
 
-        Account? account = await query.SingleOrDefaultAsync(ct);
+            });
+
+        AccountDto? account = await query.SingleOrDefaultAsync(ct);
 
         _logger.LogDebug("Loaded account {Id} (contacts: {Contacts}, interactions: {Interactions})", account?.Id, account?.Contacts.Count, account?.Interactions.Count);
 
         return account;
+    }
+
+    public async Task<bool> Patch(Guid id, UpdateAccountRequest request)
+    {
+        Account? account = await _db.Accounts.FirstOrDefaultAsync(x => x.Id == id);
+        if (account == null) 
+            return false;
+
+        account.ApplyPatch(request);
+
+        try
+        {
+            await _db.SaveChangesAsync();
+            return true;
+        }
+        catch (Exception ex)
+        {
+            return false;
+        }
+    }
+
+    public async Task<bool> Delete(Guid id)
+    {
+        int affectedRows = await _db.Accounts.Where(x => x.Id == id)
+                                             .ExecuteDeleteAsync();
+
+        return affectedRows > 0;
     }
 }

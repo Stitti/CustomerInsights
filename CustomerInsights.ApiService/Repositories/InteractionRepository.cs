@@ -1,5 +1,8 @@
 ﻿using CustomerInsights.ApiService.Models.Contracts;
-using CustomerInsights.Database;               // falls du hier deine DbContext-Options hältst – sonst entfernen
+using CustomerInsights.ApiService.Models.DTOs;
+using CustomerInsights.ApiService.Models.Enums;
+using CustomerInsights.ApiService.Patching;
+using CustomerInsights.Database;
 using CustomerInsights.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -16,25 +19,78 @@ public sealed class InteractionRepository
         _logger = logger;
     }
 
-    public async Task<Interaction?> GetInteractionByIdAsync(Guid id, CancellationToken ct = default)
+    public async Task<InteractionDto?> GetInteractionByIdAsync(Guid id, CancellationToken ct = default)
     {
-        var entity = await _db.Interactions
+        if (id == Guid.Empty)
+            return null;
+
+        InteractionDto? entity = await _db.Interactions
             .AsNoTracking()
             .AsSplitQuery()
             .Include(i => i.TextInference)
                 .ThenInclude(ti => ti.Aspects)
             .Include(i => i.TextInference)
                 .ThenInclude(ti => ti.Emotions)
+            .Include(i => i.Account)
+            .Include(i => i.Contact)
+            .Select(i => new InteractionDto
+            {
+                Id = i.Id,
+                ExternalId = i.ExternalId,
+                Subject = i.Subject,
+                Channel = i.Channel,
+                Source = i.Source,
+                AnalyzedAt = i.AnalyzedAt,
+                OccurredAt = i.OccurredAt,
+                Text = i.Text,
+                Account = i.Account != null ? new AccountListDto { Id = i.Account.Id, Name = i.Account.Name } : null,
+                Contact = i.Contact != null ? new ContactListDto { Id = i.Contact.Id, Firstname = i.Contact.Firstname, Lastname = i.Contact.Lastname } : null,
+                TextInference = i.TextInference != null ? new TextInferenceDto
+                {
+                    InferredAt = i.TextInference.InferredAt,
+                    Sentiment = i.TextInference.Sentiment,
+                    SentimentScore = i.TextInference.SentimentScore,
+                    Urgency = i.TextInference.Urgency,
+                    UrgencyScore = i.TextInference.UrgencyScore,
+                    Aspects = i.TextInference.Aspects,
+                    Emotions = i.TextInference.Emotions,
+                } : null
+            })
             .SingleOrDefaultAsync(i => i.Id == id, ct);
 
         return entity;
     }
 
-    public async Task<IEnumerable<Interaction>> GetAllInteractionsAsync(CancellationToken ct = default)
+    public async Task<IEnumerable<InteractionListDto>> GetAllInteractionsAsync(CancellationToken ct = default)
     {
-        var list = await _db.Interactions
+        List<InteractionListDto> list = await _db.Interactions
             .AsNoTracking()
+            .AsSingleQuery()
             .OrderByDescending(i => i.OccurredAt)
+            .Include(i => i.TextInference)
+            .Include(i => i.TextInference)
+            .Include(i => i.Account)
+            .Include(i => i.Contact)
+            .Select(i => new InteractionListDto
+            {
+                Id = i.Id,
+                ExternalId = i.ExternalId,
+                Subject = i.Subject,
+                Channel = i.Channel,
+                Source = i.Source,
+                AnalyzedAt = i.AnalyzedAt,
+                OccurredAt = i.OccurredAt,
+                Account = i.Account != null ? new AccountListDto { Id = i.Account.Id, Name = i.Account.Name } : null,
+                Contact = i.Contact != null ? new ContactListDto { Id = i.Contact.Id, Firstname = i.Contact.Firstname, Lastname = i.Contact.Lastname } : null,
+                TextInference = i.TextInference != null ? new TextInferenceListDto
+                {
+                    InferredAt = i.TextInference.InferredAt,
+                    Sentiment = i.TextInference.Sentiment,
+                    SentimentScore = i.TextInference.SentimentScore,
+                    Urgency = i.TextInference.Urgency,
+                    UrgencyScore = i.TextInference.UrgencyScore,
+                } : null
+            })
             .ToListAsync(ct);
 
         return list;
@@ -42,7 +98,6 @@ public sealed class InteractionRepository
 
     public async Task<Guid> InsertAsync(Interaction interaction, CancellationToken ct = default)
     {
-        // IDs/Zeitstempel setzen, falls leer
         if (interaction.Id == Guid.Empty)
             interaction.Id = Guid.NewGuid();
 
@@ -61,35 +116,38 @@ public sealed class InteractionRepository
     /// </summary>
     public async Task<Guid[]> InsertBatchAsync(IEnumerable<Interaction> interactions, CancellationToken ct = default)
     {
-        // defensive copy + IDs/Zeitstempel setzen
-        var list = interactions?.ToList() ?? new List<Interaction>();
-        foreach (var i in list)
+        List<Interaction> list = interactions?.ToList() ?? new List<Interaction>();
+
+        foreach (Interaction i in list)
         {
-            if (i.Id == Guid.Empty) i.Id = Guid.NewGuid();
-            if (i.OccurredAt == default) i.OccurredAt = DateTime.UtcNow;
+            if (i.Id == Guid.Empty)
+                i.Id = Guid.NewGuid();
+
+            if (i.OccurredAt == default)
+                i.OccurredAt = DateTime.UtcNow;
         }
 
         await _db.Interactions.AddRangeAsync(list, ct);
         await _db.SaveChangesAsync(ct);
 
-        var ids = list.Select(i => i.Id).ToArray();
+        Guid[] ids = list.Select(i => i.Id).ToArray();
         _logger.LogInformation("Inserted {Count} interactions", ids.Length);
         return ids;
     }
 
     /// <summary>
-    /// Aggregiert Top-Kanäle innerhalb eines Zeitfensters (from/to).
-    /// Falls from/to nicht gesetzt sind, werden sie aus 'period' relativ zu 'utcNow' abgeleitet.
+    /// Aggregiert Top-Kanäle innerhalb eines Zeitfensters basierend auf TimeInterval.
     /// </summary>
-    public async Task<IReadOnlyList<ChannelCount>> GetTopChannelsAsync(Period period, DateTimeOffset utcNow, DateTimeOffset? fromUtc, DateTimeOffset? toUtc, CancellationToken ct = default)
+    public async Task<IReadOnlyList<ChannelCount>> GetTopChannelsAsync(TimeInterval interval, CancellationToken ct = default)
     {
-        var (from, to) = ResolveWindow(period, utcNow, fromUtc, toUtc);
+        DateTimeOffset now = DateTimeOffset.UtcNow;
+        (DateTimeOffset from, DateTimeOffset to) = GetIntervalRange(interval, now);
 
-        var query = _db.Interactions
+        IQueryable<Interaction> query = _db.Interactions
             .AsNoTracking()
-            .Where(i => i.OccurredAt >= from.UtcDateTime && i.OccurredAt < to.UtcDateTime);
+            .Where(i => i.OccurredAt >= from && i.OccurredAt < to);
 
-        var result = await query
+        List<ChannelCount> result = await query
             .GroupBy(i => i.Channel)
             .Select(g => new ChannelCount
             {
@@ -103,57 +161,74 @@ public sealed class InteractionRepository
         return result;
     }
 
-    private static (DateTimeOffset From, DateTimeOffset To) ResolveWindow(Period period, DateTimeOffset utcNow, DateTimeOffset? fromUtc, DateTimeOffset? toUtc)
+    /// <summary>
+    /// Berechnet den Start- und Endzeitpunkt für das gewählte Intervall.
+    /// Identische Logik wie in MetricsRepository.
+    /// </summary>
+    private (DateTimeOffset Start, DateTimeOffset End) GetIntervalRange(TimeInterval interval, DateTimeOffset now)
     {
-        if (fromUtc.HasValue && toUtc.HasValue)
-            return (fromUtc.Value, toUtc.Value);
-
-        DateTimeOffset from;
-        DateTimeOffset to;
-
-        switch (period)
+        return interval switch
         {
-            // ---- rollierende Zeiträume ----
-            case Period.LastWeek:
-                to = utcNow;
-                from = utcNow.AddDays(-7);
-                break;
+            TimeInterval.ThisWeek => (StartOfWeek(now), now),
+            TimeInterval.ThisMonth => (StartOfMonth(now), now),
+            TimeInterval.ThisYear => (StartOfYear(now), now),
+            TimeInterval.LastWeek => (StartOfWeek(now.AddDays(-7)), StartOfWeek(now)),
+            TimeInterval.LastMonth => (StartOfMonth(now.AddMonths(-1)), StartOfMonth(now)),
+            TimeInterval.LastYear => (StartOfYear(now.AddYears(-1)), StartOfYear(now)),
+            _ => throw new ArgumentException($"Ungültiges Intervall: {interval}")
+        };
+    }
 
-            case Period.LastMonth:
-                to = utcNow;
-                from = utcNow.AddDays(-30);
-                break;
+    /// <summary>
+    /// Gibt den Start der Woche (Montag) zurück.
+    /// </summary>
+    private DateTimeOffset StartOfWeek(DateTimeOffset date)
+    {
+        int diff = (7 + (date.DayOfWeek - DayOfWeek.Monday)) % 7;
+        return date.AddDays(-1 * diff).Date;
+    }
 
-            case Period.LastYear:
-                to = utcNow;
-                from = utcNow.AddDays(-365);
-                break;
+    /// <summary>
+    /// Gibt den Start des Monats zurück.
+    /// </summary>
+    private DateTimeOffset StartOfMonth(DateTimeOffset date)
+    {
+        return new DateTimeOffset(date.Year, date.Month, 1, 0, 0, 0, date.Offset);
+    }
 
-            // ---- Kalenderbasierte Zeiträume ----
-            case Period.CalendarWeek:
-                // Montag als Wochenstart
-                int diff = ((int)utcNow.DayOfWeek + 6) % 7;
-                from = new DateTimeOffset(utcNow.Date.AddDays(-diff), TimeSpan.Zero);
-                to = from.AddDays(7);
-                break;
+    /// <summary>
+    /// Gibt den Start des Jahres zurück.
+    /// </summary>
+    private DateTimeOffset StartOfYear(DateTimeOffset date)
+    {
+        return new DateTimeOffset(date.Year, 1, 1, 0, 0, 0, date.Offset);
+    }
 
-            case Period.CalendarMonth:
-                from = new DateTimeOffset(utcNow.Year, utcNow.Month, 1, 0, 0, 0, TimeSpan.Zero);
-                to = from.AddMonths(1);
-                break;
+    public async Task<bool> DeleteAsync(Guid id)
+    {
+        int affectedRows = await _db.Interactions
+            .Where(x => x.Id == id)
+            .ExecuteDeleteAsync();
 
-            case Period.CalendarYear:
-                from = new DateTimeOffset(utcNow.Year, 1, 1, 0, 0, 0, TimeSpan.Zero);
-                to = from.AddYears(1);
-                break;
+        return affectedRows > 0;
+    }
 
-            default:
-                // Fallback: letzte 30 Tage
-                to = utcNow;
-                from = utcNow.AddDays(-30);
-                break;
+    internal async Task<bool> PatchAsync(Guid id, UpdateInteractionRequest request)
+    {
+        Interaction? interaction = await _db.Interactions.FirstOrDefaultAsync(x => x.Id == id);
+        if (interaction == null)
+            return false;
+
+        interaction.ApplyPatch(request);
+
+        try
+        {
+            await _db.SaveChangesAsync();
+            return true;
         }
-
-        return (from, to);
+        catch (Exception ex)
+        {
+            return false;
+        }
     }
 }

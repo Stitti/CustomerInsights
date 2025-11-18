@@ -5,8 +5,10 @@ namespace CustomerInsights.ApiService.Models.Contracts
     public class CreateAccountRequest
     {
         public string Name { get; set; }
+        public string? ExternalId { get; set; }
         public Guid ParentAccountId { get; set; }
-        public string Industry { get; set; }
-        public CustomerClassification Classification { get; set; }
+        public string? Industry { get; set; }
+        public string? Country { get; set; }
+        public CustomerClassification Classification { get; set; } = CustomerClassification.None;
     }
 }

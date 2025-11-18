@@ -7,6 +7,7 @@ namespace CustomerInsights.ApiService.Models.DTOs
         public Guid Id { get; set; }
         public string Name { get; set; } = string.Empty;
         public string Industry { get; set; } = string.Empty;
+        public string Country { get; set; } = string.Empty;
         public CustomerClassification Classification { get; set; }
         public DateTime CreatedAt { get; set; }
 

@@ -22,7 +22,7 @@ namespace CustomerInsights.ApiService.Services
             return await _repository.GetAllWithParentAsync();
         }
 
-        public async Task<Account?> GetAccountById(Guid id)
+        public async Task<AccountDto?> GetAccountById(Guid id)
         {
             return await _repository.GetByIdWithDetailsAsync(id);
         }
@@ -35,10 +35,21 @@ namespace CustomerInsights.ApiService.Services
                 ParentAccountId = request.ParentAccountId,
                 Classification = request.Classification,
                 Industry = request.Industry,
+                Country = request.Country,
                 CreatedAt = DateTime.UtcNow,
             };
 
             return await _repository.CreateAsync(account);
+        }
+
+        public async Task<bool> PatchAsync(Guid id, UpdateAccountRequest request)
+        {
+            return await _repository.Patch(id, request);
+        }
+
+        public async Task<bool> DeleteAsync(Guid id)
+        {
+            return await _repository.Delete(id);
         }
     }
 }

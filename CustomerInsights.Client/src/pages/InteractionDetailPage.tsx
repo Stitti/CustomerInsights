@@ -1,182 +1,357 @@
-import {Box, Badge, Card, Code, DataList, Flex, IconButton, Link, Text, Button, Heading} from "@radix-ui/themes";
-import {CopyIcon, RefreshCcw, SaveIcon, TrashIcon, XIcon} from "lucide-react";
+import React from "react";
+import {
+    Box,
+    Badge,
+    Card,
+    Code,
+    DataList,
+    Flex,
+    IconButton,
+    Link,
+    Text,
+    Skeleton,
+} from "@radix-ui/themes";
+import { CopyIcon } from "lucide-react";
 import ModifiedCard from "../components/ModifiedCard";
 import LookupField from "../components/LookupField";
-import BackButton from "../components/BackButton";
+import TagEditor from "../components/TagEditor";
+import Header from "../components/headers/Header";
+import { useParams, useNavigate } from "react-router-dom";
+import { getInteractionById, deleteInteractionById } from "../services/interactionService";
+import type { InteractionResponse } from "@/src/models/responses/interactionResponse";
+
+const CHANNEL_LABEL: Record<number, string> = {
+    1: "Phone",
+    2: "Gmail",
+    3: "Phone",
+    4: "Zendesk",
+    5: "App",
+    10: "Gmail",
+    12: "Zendesk",
+    20: "Web",
+    21: "App",
+};
+
+function formatDate(d?: string | Date | null) {
+    if (!d) return "—";
+    const date = typeof d === "string" ? new Date(d) : d;
+    if (isNaN(date.getTime())) return "—";
+    return date.toLocaleString(undefined, {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+    });
+}
 
 export function InteractionDetailPage() {
+    const { id } = useParams<{ id: string }>();
+    const navigate = useNavigate();
+
+    const [loading, setLoading] = React.useState(true);
+    const [interaction, setInteraction] = React.useState<InteractionResponse | null>(null);
+    const [copyOK, setCopyOK] = React.useState(false);
+
+    // TagEditor-States (werden nach Load aus textInference befüllt)
+    const [emotions, setEmotions] = React.useState<string[]>([]);
+    const [aspects, setAspects] = React.useState<string[]>([]);
+
+    const fetchData = React.useCallback(async () => {
+        if (!id) return;
+        setLoading(true);
+        try {
+            const data = await getInteractionById(id);
+            setInteraction(data ?? null);
+
+            const emo = data?.textInference?.emotions?.map(e => e.label).filter(Boolean) ?? [];
+            const asp = data?.textInference?.aspects?.map(a => a.label).filter(Boolean) ?? [];
+            setEmotions(emo);
+            setAspects(asp);
+        } catch (e) {
+            console.error("Failed to load interaction:", e);
+            setInteraction(null);
+            setEmotions([]);
+            setAspects([]);
+        } finally {
+            setLoading(false);
+        }
+    }, [id]);
+
+    React.useEffect(() => {
+        fetchData();
+    }, [fetchData]);
+
+    const title = interaction?.subject ?? (interaction as any)?.title ?? "";
+    const occurredAtStr = formatDate(interaction?.occurredAt);
+    const analyzed = !!interaction?.analyzedAt;
+
+    const onCopyExternalId = async () => {
+        const ext = interaction?.externalId;
+        if (!ext) return;
+        try {
+            await navigator.clipboard.writeText(ext);
+            setCopyOK(true);
+            setTimeout(() => setCopyOK(false), 1400);
+        } catch (e) {
+            console.error("Copy failed", e);
+        }
+    };
+
+    const onRefresh = async () => {
+        await fetchData();
+    };
+
+    const onDelete = async () => {
+        if (!interaction?.id) return;
+        try {
+            await deleteInteractionById(interaction.id);
+            navigate(-1);
+        } catch (e) {
+            console.error("Delete failed", e);
+        }
+    };
+
     return (
         <Box flexGrow="1" p="6">
-            <BackButton/>
-            <Card style={{ flex: 1, minWidth: "100%" }}  mb="4">
-                <Flex direction="row" style={{justifyContent: "space-between"}} >
-                    <Text size="5">Supportanfrage zu Rechnungskorrektur</Text>
-                    <Flex direction="row" gap="4" wrap="wrap">
-                        <IconButton variant="soft">
-                            <SaveIcon size="20"/>
-                        </IconButton>
-                        <IconButton variant="soft">
-                            <TrashIcon size="20"/>
-                        </IconButton>
-                        <IconButton variant="soft">
-                            <RefreshCcw size="20"/>
-                        </IconButton>
+            <Header
+                title={loading ? "…" : (title || "Interaction")}
+                showSave={true}
+                showDelete={true}
+                showRefresh={true}
+            />
+
+            <Flex gap="9" direction="column" wrap="wrap">
+                <Card style={{ flex: 1, minWidth: "100%" }} variant="ghost" mb="4">
+                    <Flex direction="row" gap="8" wrap="wrap">
+                        {/* Linke Spalte */}
+                        <Card style={{ flex: 1, minWidth: 320 }} variant="surface" size="3" mb="6">
+                            <DataList.Root size="3">
+                                {/* Title */}
+                                <DataList.Item align="center">
+                                    <DataList.Label>Title</DataList.Label>
+                                    <DataList.Value>
+                                        {loading ? <Skeleton><Text> </Text></Skeleton> : (title || "—")}
+                                    </DataList.Value>
+                                </DataList.Item>
+
+                                {/* Contact (eingebettet) */}
+                                <DataList.Item>
+                                    <DataList.Label minWidth="88px">Contact</DataList.Label>
+                                    <DataList.Value>
+                                        {loading ? (
+                                            <Skeleton><Text> </Text></Skeleton>
+                                        ) : interaction?.contact ? (
+                                            <LookupField
+                                                title={`${interaction.contact.firstname} ${interaction.contact.lastname}`}
+                                                description={interaction.contact.email ?? ""}
+                                                targetUrl={`/contacts/${interaction.contact.id}`}
+                                                iconUrl=""
+                                                iconFallback={`${interaction.contact.firstname?.[0] ?? ""}${interaction.contact.lastname?.[0] ?? ""}`.toUpperCase() || "CO"}
+                                            />
+                                        ) : (
+                                            <Text color="gray">—</Text>
+                                        )}
+                                    </DataList.Value>
+                                </DataList.Item>
+
+                                {/* Account (eingebettet) */}
+                                <DataList.Item>
+                                    <DataList.Label minWidth="88px">Account</DataList.Label>
+                                    <DataList.Value>
+                                        {loading ? (
+                                            <Skeleton><Text> </Text></Skeleton>
+                                        ) : interaction?.account ? (
+                                            <LookupField
+                                                title={interaction.account.name}
+                                                description={interaction.account.industry || "—"}
+                                                targetUrl={`/accounts/${interaction.account.id}`}
+                                                iconUrl=""
+                                                iconFallback={interaction.account.name?.slice(0, 2).toUpperCase() || "AC"}
+                                            />
+                                        ) : (
+                                            <Text color="gray">—</Text>
+                                        )}
+                                    </DataList.Value>
+                                </DataList.Item>
+
+                                {/* External ID */}
+                                <DataList.Item>
+                                    <DataList.Label minWidth="88px">External ID</DataList.Label>
+                                    <DataList.Value>
+                                        {loading ? (
+                                            <Skeleton>
+                                                <Flex align="center" gap="2">
+                                                    <Code variant="ghost">XXXXXXXXXXXX</Code>
+                                                    <IconButton size="1" aria-label="Copy value" color="gray" variant="ghost">
+                                                        <CopyIcon size="16" />
+                                                    </IconButton>
+                                                </Flex>
+                                            </Skeleton>
+                                        ) : (
+                                            <Flex align="center" gap="2">
+                                                <Code variant="ghost">{interaction?.externalId ?? "—"}</Code>
+                                                {interaction?.externalId && (
+                                                    <IconButton
+                                                        size="1"
+                                                        aria-label={copyOK ? "Copied" : "Copy value"}
+                                                        color={copyOK ? "green" : "gray"}
+                                                        variant="ghost"
+                                                        onClick={onCopyExternalId}
+                                                        title={copyOK ? "Copied!" : "Copy to clipboard"}
+                                                    >
+                                                        <CopyIcon size="16" />
+                                                    </IconButton>
+                                                )}
+                                            </Flex>
+                                        )}
+                                    </DataList.Value>
+                                </DataList.Item>
+
+                                {/* Channel */}
+                                <DataList.Item>
+                                    <DataList.Label minWidth="88px">Channel</DataList.Label>
+                                    <DataList.Value>
+                                        {loading ? (
+                                            <Skeleton><Text> </Text></Skeleton>
+                                        ) : (
+                                            CHANNEL_LABEL[interaction?.channel ?? 0] ?? String(interaction?.channel ?? "—")
+                                        )}
+                                    </DataList.Value>
+                                </DataList.Item>
+
+                                {/* Thread */}
+                                <DataList.Item>
+                                    <DataList.Label minWidth="88px">Thread</DataList.Label>
+                                    <DataList.Value>
+                                        {loading ? (
+                                            <Skeleton><Text> </Text></Skeleton>
+                                        ) : interaction?.threadId ? (
+                                            <Code variant="ghost">{interaction.threadId}</Code>
+                                        ) : (
+                                            <Text color="gray">—</Text>
+                                        )}
+                                    </DataList.Value>
+                                </DataList.Item>
+
+                                {/* Occurred At */}
+                                <DataList.Item>
+                                    <DataList.Label minWidth="88px">Occurred At</DataList.Label>
+                                    <DataList.Value>
+                                        {loading ? <Skeleton><Text> </Text></Skeleton> : occurredAtStr}
+                                    </DataList.Value>
+                                </DataList.Item>
+
+                                {/* Text */}
+                                <DataList.Item>
+                                    <DataList.Label minWidth="88px">Text</DataList.Label>
+                                    <DataList.Value>
+                                        {loading ? (
+                                            <>
+                                                <Skeleton><Text> </Text></Skeleton>
+                                                <Skeleton><Text> </Text></Skeleton>
+                                                <Skeleton><Text> </Text></Skeleton>
+                                            </>
+                                        ) : (
+                                            <Text wrap="pretty">{interaction?.text ?? "—"}</Text>
+                                        )}
+                                    </DataList.Value>
+                                </DataList.Item>
+                            </DataList.Root>
+                        </Card>
+
+                        {/* Rechte Spalte */}
+                        <Card style={{ flex: 1, maxWidth: "20vw", minWidth: 280 }} variant="surface" size="3" mb="6">
+                            <DataList.Root>
+                                {/* Status */}
+                                <DataList.Item align="center">
+                                    <DataList.Label minWidth="88px">Status</DataList.Label>
+                                    <DataList.Value>
+                                        {loading ? (
+                                            <Skeleton><Badge>Analyzing</Badge></Skeleton>
+                                        ) : (
+                                            <Badge color={analyzed ? "jade" : "amber"} variant="soft" radius="full">
+                                                {analyzed ? "Analyzed" : "Pending"}
+                                            </Badge>
+                                        )}
+                                    </DataList.Value>
+                                </DataList.Item>
+
+                                {/* Sentiment */}
+                                <DataList.Item>
+                                    <DataList.Label>Sentiment</DataList.Label>
+                                    <DataList.Value>
+                                        {loading ? <Skeleton><Text> </Text></Skeleton> : (interaction?.textInference?.sentiment ?? "—")}
+                                    </DataList.Value>
+                                </DataList.Item>
+
+                                {/* Urgency */}
+                                <DataList.Item>
+                                    <DataList.Label>Urgency</DataList.Label>
+                                    <DataList.Value>
+                                        {loading ? <Skeleton><Text> </Text></Skeleton> : (interaction?.textInference?.urgency ?? "—")}
+                                    </DataList.Value>
+                                </DataList.Item>
+
+                                {/* Emotions (TagEditor) */}
+                                <DataList.Item>
+                                    <DataList.Label>Emotions</DataList.Label>
+                                    <DataList.Value>
+                                        {loading ? (
+                                            <Flex gap="2" wrap="wrap">
+                                                {Array.from({ length: 3 }).map((_, i) => (
+                                                    <Skeleton key={`emo-${i}`}><Badge variant="solid"> </Badge></Skeleton>
+                                                ))}
+                                            </Flex>
+                                        ) : (
+                                            <TagEditor
+                                                value={emotions}
+                                                onChange={setEmotions}
+                                                placeholder="z.B. Ärger, Sorge…"
+                                                suggestions={[
+                                                    "Frustration",
+                                                    "Enttäuschung",
+                                                    "Verwirrung",
+                                                    "Sorge",
+                                                    "Verärgerung",
+                                                    "Ungeduld",
+                                                ]}
+                                                ariaLabel="Emotion hinzufügen"
+                                                badgeColor="indigo"
+                                            />
+                                        )}
+                                    </DataList.Value>
+                                </DataList.Item>
+
+                                {/* Aspects (TagEditor) */}
+                                <DataList.Item>
+                                    <DataList.Label>Aspects</DataList.Label>
+                                    <DataList.Value>
+                                        {loading ? (
+                                            <Flex gap="2" wrap="wrap">
+                                                {Array.from({ length: 4 }).map((_, i) => (
+                                                    <Skeleton key={`asp-${i}`}><Badge variant="solid"> </Badge></Skeleton>
+                                                ))}
+                                            </Flex>
+                                        ) : (
+                                            <TagEditor
+                                                value={aspects}
+                                                onChange={setAspects}
+                                                placeholder="z.B. Versand, Rechnung…"
+                                                suggestions={["Lieferzeit", "Preis", "Support", "Qualität", "Website", "Rechnung"]}
+                                                ariaLabel="Aspekt hinzufügen"
+                                                badgeColor="indigo"
+                                            />
+                                        )}
+                                    </DataList.Value>
+                                </DataList.Item>
+                            </DataList.Root>
+                        </Card>
                     </Flex>
-                </Flex>
-            </Card>
-        <Flex gap="9" direction="column" wrap="wrap">
-            <Card style={{ flex: 1, minWidth: "100%" }} variant="ghost"  mb="4">
-                <Flex direction="row" gap="8" wrap="wrap">
-                    <Card style={{ flex: 1, minWidth: 320 }} variant="surface" size="3" mb="6">
-                        <DataList.Root size="3">
-                            <DataList.Item align="center">
-                                <DataList.Label>Title</DataList.Label>
-                                <DataList.Value>Supportanfrage zu Rechnungskorrektur</DataList.Value>
-                            </DataList.Item>
-                            <DataList.Item>
-                                <DataList.Label minWidth="88px">Contact</DataList.Label>
-                                <DataList.Value>
-                                    <LookupField title="Anna Müller" description="anna.mueller@mueller-consulting.at" targetUrl="/accounts/123" iconUrl="" iconFallback="AM"/>
-                                </DataList.Value>
-                            </DataList.Item>
-                            <DataList.Item>
-                                <DataList.Label minWidth="88px">Account</DataList.Label>
-                                <DataList.Value>
-                                    <LookupField title="Müller Consulting GmbH" description="Consulting, Austria" targetUrl="/accounts/123" iconUrl="" iconFallback="85"/>
-                                </DataList.Value>
-                            </DataList.Item>
-                            <DataList.Item>
-                                <DataList.Label minWidth="88px">External ID</DataList.Label>
-                                <DataList.Value>
-                                    <Flex align="center" gap="2">
-                                        <Code variant="ghost">u_2J89JSA4GJ</Code>
-                                        <IconButton
-                                            size="1"
-                                            aria-label="Copy value"
-                                            color="gray"
-                                            variant="ghost"
-                                        >
-                                            <CopyIcon size="16"/>
-                                        </IconButton>
-                                    </Flex>
-                                </DataList.Value>
-                            </DataList.Item>
-                            <DataList.Item>
-                                <DataList.Label minWidth="88px">Channel</DataList.Label>
-                                <DataList.Value>Email</DataList.Value>
-                            </DataList.Item>
-                            <DataList.Item>
-                                <DataList.Label minWidth="88px">Thread</DataList.Label>
-                                <DataList.Value>
-                                    <Link href=""></Link>
-                                </DataList.Value>
-                            </DataList.Item>
-                            <DataList.Item>
-                                <DataList.Label minWidth="88px">Occurred At</DataList.Label>
-                                <DataList.Value>2025-10-30T09:15:00Z</DataList.Value>
-                            </DataList.Item>
-                            <DataList.Item>
-                                <DataList.Label minWidth="88px">Text</DataList.Label>
-                                <DataList.Value>
-                                    <Text wrap="pretty">
-                                        I’ve been a loyal customer of your company for more than three years, but my recent experience has left me quite frustrated. I ordered two monitors for my home office and was promised delivery within five business days. However, the package arrived almost two weeks later, and no one from your team informed me about the delay. When I finally received the products, one of the screens had visible scratches and the other wouldn’t even turn on.
+                </Card>
 
-                                        Considering the high price I paid, I expected much better quality control. The packaging also looked like it had been opened before, which makes me wonder if I received a returned item. I reached out to your support department three times over the past week, but each time I was told someone would “get back to me soon.” No one ever did. It’s been extremely disappointing to deal with such slow and unhelpful service.
-
-                                        On top of that, the invoice I received lists an additional shipping fee that was never mentioned during checkout. I tried to correct it through your online portal, but the usability of your website is honestly terrible — buttons don’t work, and the chat assistant just loops me back to the FAQ page.
-
-                                        I really hope someone takes this seriously and resolves both the product and billing issues immediately. I’ve spent too much time and money on this already, and I’m running out of patience.
-                                    </Text>
-                                </DataList.Value>
-                            </DataList.Item>
-                        </DataList.Root>
-                    </Card>
-                    <Card style={{ flex: 1, maxWidth: "20vw" }} variant="surface" size="3" mb="6">
-                        <DataList.Root>
-                            <DataList.Item align="center">
-                                <DataList.Label minWidth="88px">Status</DataList.Label>
-                                <DataList.Value>
-                                    <Badge color="jade" variant="soft" radius="full">
-                                        Analyzed
-                                    </Badge>
-                                </DataList.Value>
-                            </DataList.Item>
-                            <DataList.Item>
-                                <DataList.Label>Sentiment</DataList.Label>
-                                <DataList.Value>NEGATIVE</DataList.Value>
-                            </DataList.Item>
-                            <DataList.Item>
-                                <DataList.Label>Urgency</DataList.Label>
-                                <DataList.Value>MEDIUM</DataList.Value>
-                            </DataList.Item>
-                            <DataList.Item>
-                                <DataList.Label>Emotions</DataList.Label>
-                                <DataList.Value>
-                                    <Flex gap="2" wrap="wrap">
-                                        <Badge variant="solid" color="indigo">
-                                            <IconButton style={{ height: "13px", width: "13px" }}>
-                                                <XIcon/>
-                                            </IconButton>
-                                            <Text>Frustration</Text>
-                                        </Badge>
-                                        <Badge variant="solid" color="indigo">
-                                            <IconButton style={{ height: "13px", width: "13px" }}>
-                                                <XIcon/>
-                                            </IconButton>
-                                            <Text>Disappointment</Text>
-                                        </Badge>
-                                        <Badge variant="solid" color="indigo">
-                                            <IconButton style={{ height: "13px", width: "13px" }}>
-                                                <XIcon/>
-                                            </IconButton>
-                                            <Text>Confusion</Text>
-                                        </Badge>
-                                        <Badge variant="solid" color="indigo">
-                                            <IconButton style={{ height: "13px", width: "13px" }}>
-                                                <XIcon/>
-                                            </IconButton>
-                                            <Text>Concern</Text>
-                                        </Badge>
-                                    </Flex>
-                                </DataList.Value>
-                            </DataList.Item>
-                            <DataList.Item>
-                                <DataList.Label>Aspects</DataList.Label>
-                                <DataList.Value>
-                                    <Flex gap="2" wrap="wrap">
-                                        <Badge variant="solid" color="indigo">
-                                            <IconButton style={{ height: "13px", width: "13px" }}>
-                                                <XIcon/>
-                                            </IconButton>
-                                            <Text>Lieferzeit</Text>
-                                        </Badge>
-                                        <Badge variant="solid" color="indigo">
-                                            <IconButton style={{ height: "13px", width: "13px" }}>
-                                                <XIcon/>
-                                            </IconButton>
-                                            <Text>Preis</Text>
-                                        </Badge>
-                                        <Badge variant="solid" color="indigo">
-                                            <IconButton style={{ height: "13px", width: "13px" }}>
-                                                <XIcon/>
-                                            </IconButton>
-                                            <Text>Support</Text>
-                                        </Badge>
-                                        <Badge variant="solid" color="indigo">
-                                            <IconButton style={{ height: "13px", width: "13px" }}>
-                                                <XIcon/>
-                                            </IconButton>
-                                            <Text>Qualität</Text>
-                                        </Badge>
-                                    </Flex>
-                                </DataList.Value>
-                            </DataList.Item>
-                        </DataList.Root>
-                    </Card>
-                </Flex>
-            </Card>
-            <ModifiedCard/>
-        </Flex>
+                <ModifiedCard />
+            </Flex>
         </Box>
-    )
+    );
 }

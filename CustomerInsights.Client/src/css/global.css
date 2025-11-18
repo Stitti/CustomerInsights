@@ -1,0 +1,5 @@
+.rt-Button,
+.rt-IconButton,
+.rt-ToggleButton {
+    cursor: pointer;
+}

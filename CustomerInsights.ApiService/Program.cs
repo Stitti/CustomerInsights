@@ -26,12 +26,16 @@ builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connect
 builder.Services.AddScoped<InteractionRepository>();
 builder.Services.AddScoped<ContactRepository>();
 builder.Services.AddScoped<AccountRepository>();
+builder.Services.AddScoped<SignalRepository>();
+builder.Services.AddScoped<MetricsRepository>();
 
 // Services
 builder.Services.AddSingleton<TextNormalizer>();
 builder.Services.AddScoped<InteractionService>();
 builder.Services.AddScoped<ContactService>();
 builder.Services.AddScoped<AccountService>();
+builder.Services.AddScoped<SignalService>();
+builder.Services.AddScoped<MetricsService>();
 
 builder.AddLogging();
 
@@ -58,10 +62,7 @@ WebApplication app = builder.Build();
 
 using IServiceScope scope = app.Services.CreateScope();
 AppDbContext dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-if (dbContext.Database.GetPendingMigrations().Any())
-{
-    dbContext.Database.Migrate();
-}
+dbContext.Database.Migrate();
 
 app.UseCors("AllowAll");
 app.MapControllers();

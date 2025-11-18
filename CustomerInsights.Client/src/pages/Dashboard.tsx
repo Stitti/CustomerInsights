@@ -1,14 +1,14 @@
 import {Box, Card, Flex, Text} from "@radix-ui/themes";
 import {SentimentChart} from "../components/SentimentChart";
 import {ChannelChart} from "../components/ChannelChart";
-import TopAccountList from "../components/TopAccountList";
-import {DashboardHeader} from "../components/DashboardHeader";
+import TopAccountList from "../components/lists/TopAccountList";
 import {MetricsTrends} from "../components/MetricsTrends";
+import Header from "../components/headers/Header";
 
 export function Dashboard() {
     return (
         <Box flexGrow="1" p="6">
-            <DashboardHeader/>
+            <Header showTimeInterval={true} showRefresh={true}/>
             <MetricsTrends/>
             <Flex direction="column" wrap="wrap">
                 <Card style={{ flex: 1, minWidth: 320 }} variant="surface" size="3" mb="6">

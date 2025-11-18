@@ -2,6 +2,7 @@
 using CustomerInsights.ApiService.Models.Enums;
 using CustomerInsights.Base.Models;
 using CustomerInsights.Models;
+using CustomerInsights.SignalWorker.Models;
 
 namespace CustomerInsights.ApiService.Models;
 
@@ -20,5 +21,6 @@ public class Account
 
     public List<Contact> Contacts { get; set; } = new List<Contact>();
     public List<Interaction> Interactions { get; set; } = new List<Interaction>();
+    public List<Signal> Signals { get; set; } = new List<Signal>();
 
 }

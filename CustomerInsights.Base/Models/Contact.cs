@@ -10,7 +10,8 @@ public class Contact
     public string Lastname { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
     public string Phone { get; set; } = string.Empty;
-    public Account Account { get; set; } = new Account();
+    public Guid? AccountId { get; set; }
+    public Account? Account { get; set; }
     public List<Interaction> Interactions { get; set; } = new List<Interaction>();
     public DateTime CreatedAt { get; set; }
 }

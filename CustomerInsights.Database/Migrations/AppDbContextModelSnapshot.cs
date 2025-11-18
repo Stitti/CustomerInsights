@@ -162,6 +162,10 @@ namespace CustomerInsights.Database.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
+                    b.Property<Guid?>("AccountId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("account_id");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
@@ -196,12 +200,9 @@ namespace CustomerInsights.Database.Migrations
                         .HasColumnType("character varying(64)")
                         .HasColumnName("phone");
 
-                    b.Property<Guid>("account_id")
-                        .HasColumnType("uuid");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("account_id");
+                    b.HasIndex("AccountId");
 
                     b.ToTable("contacts", (string)null);
                 });
@@ -367,6 +368,8 @@ namespace CustomerInsights.Database.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("AccountId");
+
                     b.HasIndex("DedupeKey")
                         .IsUnique();
 
@@ -398,24 +401,27 @@ namespace CustomerInsights.Database.Migrations
                 {
                     b.HasOne("CustomerInsights.ApiService.Models.Account", "Account")
                         .WithMany("Contacts")
-                        .HasForeignKey("account_id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("Account");
                 });
 
             modelBuilder.Entity("CustomerInsights.Models.Interaction", b =>
                 {
-                    b.HasOne("CustomerInsights.ApiService.Models.Account", null)
+                    b.HasOne("CustomerInsights.ApiService.Models.Account", "Account")
                         .WithMany("Interactions")
                         .HasForeignKey("AccountId")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("CustomerInsights.Models.Contact", null)
+                    b.HasOne("CustomerInsights.Models.Contact", "Contact")
                         .WithMany("Interactions")
                         .HasForeignKey("ContactId")
                         .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Account");
+
+                    b.Navigation("Contact");
                 });
 
             modelBuilder.Entity("CustomerInsights.Models.TextInference", b =>
@@ -489,6 +495,17 @@ namespace CustomerInsights.Database.Migrations
                     b.Navigation("Emotions");
                 });
 
+            modelBuilder.Entity("CustomerInsights.SignalWorker.Models.Signal", b =>
+                {
+                    b.HasOne("CustomerInsights.ApiService.Models.Account", "Account")
+                        .WithMany("Signals")
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Account");
+                });
+
             modelBuilder.Entity("CustomerInsights.ApiService.Models.Account", b =>
                 {
                     b.Navigation("Contacts");
@@ -497,6 +514,8 @@ namespace CustomerInsights.Database.Migrations
 
                     b.Navigation("SatisfactionState")
                         .IsRequired();
+
+                    b.Navigation("Signals");
                 });
 
             modelBuilder.Entity("CustomerInsights.Models.Contact", b =>

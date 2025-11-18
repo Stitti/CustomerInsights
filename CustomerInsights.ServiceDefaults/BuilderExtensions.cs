@@ -1,6 +1,10 @@
 using AspNetCoreRateLimit;
+using Azure.Core;
+using Azure.Identity;
+using Azure.Security.KeyVault.Secrets;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
@@ -33,7 +37,7 @@ namespace CustomerInsights.ServiceDefaults
                 .WriteTo.Console(outputTemplate: "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff} {Level:u3}] {Message:lj} (TraceId={TraceId}){NewLine}{Exception}")
                 .WriteTo.File(path: "Logs/log.json", rollingInterval: RollingInterval.Day, formatter: new CompactJsonFormatter())
                 .CreateLogger();
-        
+
             builder.Logging.ClearProviders();
             builder.Host.UseSerilog();
             return builder;
@@ -54,6 +58,38 @@ namespace CustomerInsights.ServiceDefaults
 
             builder.Logging.ClearProviders();
             builder.Logging.AddSerilog(Log.Logger);
+            return builder;
+        }
+
+        public static WebApplicationBuilder AddKeyVaultService(this WebApplicationBuilder builder)
+        {
+            string? vaultUri = builder.Configuration.GetValue<string>("KeyVault:VaultUri");
+            if (string.IsNullOrWhiteSpace(vaultUri))
+                throw new InvalidOperationException("KeyVault:VaultUri is required.");
+
+            builder.Services.AddSingleton<TokenCredential>(_ => new DefaultAzureCredential());
+            builder.Services.AddSingleton(sp =>
+            {
+                TokenCredential? cred = sp.GetRequiredService<TokenCredential>();
+                SecretClientOptions options = new SecretClientOptions
+                {
+                    Retry =
+                    {
+                        Mode = RetryMode.Exponential,
+                        MaxRetries = 5,
+                        Delay = TimeSpan.FromMilliseconds(500),
+                        MaxDelay = TimeSpan.FromSeconds(5)
+                    },
+                    Diagnostics =
+                    {
+                        IsLoggingEnabled = true,
+                        IsLoggingContentEnabled = false
+                    }
+                };
+
+                return new SecretClient(new Uri(vaultUri), cred, options);
+            });
+
             return builder;
         }
 
@@ -78,7 +114,7 @@ namespace CustomerInsights.ServiceDefaults
             builder.Services.AddInMemoryRateLimiting();
             return builder;
         }
-        
+
         public static WebApplicationBuilder AddServiceDefaults(this WebApplicationBuilder builder)
         {
             builder.ConfigureOpenTelemetry();
