@@ -1,6 +1,7 @@
 import api from "./api";
 import type {AccountListResponse, AccountResponse} from "@/src/models/responses/accountResponse.ts";
 import type {CreateAccountRequest, UpdateAccountRequest} from "@/src/models/requests/accountRequests.ts";
+import {useActionLoader} from "../components/ActionLoaderProvider";
 
 export async function getAllAccounts(): Promise<AccountListResponse[]> {
     const response = await api.get<AccountListResponse[]>("/accounts");

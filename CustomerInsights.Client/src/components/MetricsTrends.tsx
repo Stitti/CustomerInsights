@@ -1,14 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { Flex } from "@radix-ui/themes";
 import { MetricCard } from "./MetricCard";
-import { getAccountMetrics, getTenantMetrics } from "../services/metricsService"; // deine Datei
+import { getAccountMetrics, getTenantMetrics } from "../services/metricsService";
 import type { MetricsResponse } from "@/src/models/responses/metricsResponse";
+import type {TimeInterval} from "@/src/types.ts";
 
 type Props = {
-    accountId?: string; // wenn gesetzt -> account-spezifische Metriken
+    accountId?: string;
+    timeInterval?: TimeInterval;
 };
 
-export function MetricsTrends({ accountId }: Props) {
+export function MetricsTrends({ accountId, timeInterval = "0" }: Props) {
     const [metrics, setMetrics] = useState<MetricsResponse | null>(null);
     const [loading, setLoading] = useState(true);
 
@@ -16,25 +18,26 @@ export function MetricsTrends({ accountId }: Props) {
         let mounted = true;
         setLoading(true);
 
-        const fetcher = accountId ? getAccountMetrics(accountId) : getTenantMetrics();
+        const fetcher = accountId
+            ? getAccountMetrics(accountId, timeInterval)
+            : getTenantMetrics(timeInterval);
 
         fetcher
             .then((data) => {
-                if (mounted)
-                    setMetrics(data ?? null);
+                if (mounted) setMetrics(data ?? null);
             })
             .catch((err) => {
                 console.error("Error loading metrics:", err);
-                if (mounted)
-                    setMetrics(null);
+                if (mounted) setMetrics(null);
             })
             .finally(() => {
-                if (mounted)
-                    setLoading(false);
+                if (mounted) setLoading(false);
             });
 
-        return () => { mounted = false; };
-    }, [accountId]);
+        return () => {
+            mounted = false;
+        };
+    }, [accountId, timeInterval]); // <–– Intervall als Dependency
 
     const satisfaction = metrics?.satisfactionIndex;
     const satisfactionTrend = metrics?.satisfactionIndexTrend ?? null;

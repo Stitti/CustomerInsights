@@ -1,0 +1,128 @@
+.AppToastViewport {
+    position: fixed;
+    bottom: var(--space-6);
+    right: var(--space-6);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    max-width: 420px;
+    width: 100%;
+    z-index: 9999;
+    outline: none;
+}
+
+.AppToastRoot {
+    background-color: var(--color-panel-solid);
+    color: var(--gray-12);
+    border-radius: var(--radius-3);
+    box-shadow: var(--shadow-4);
+    border: 1px solid var(--gray-4);
+    padding: var(--space-3) var(--space-4);
+    display: grid;
+    grid-template-columns: 1fr auto;
+    column-gap: var(--space-3);
+    row-gap: var(--space-2);
+    align-items: flex-start;
+    font-family: var(--default-font-family);
+    font-size: 13px;
+    line-height: 1.4;
+    box-sizing: border-box;
+}
+
+.AppToastBody {
+    min-width: 0;
+}
+
+.AppToastTitle {
+    font-weight: var(--font-weight-medium);
+    margin-bottom: var(--space-1);
+}
+
+.AppToastDescription {
+    color: var(--gray-11);
+}
+
+.AppToastActions {
+    display: inline-flex;
+    gap: var(--space-1);
+    align-items: flex-start;
+}
+
+.AppToastAction {
+    all: unset;
+    box-sizing: border-box;
+    border-radius: var(--radius-2);
+    padding: 0 var(--space-2);
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    background-color: var(--accent-9);
+    color: var(--accent-contrast);
+    font-size: 12px;
+    font-weight: var(--font-weight-medium);
+}
+
+.AppToastAction:hover {
+    background-color: var(--accent-10);
+}
+
+.AppToastClose {
+    all: unset;
+    box-sizing: border-box;
+    border-radius: var(--radius-2);
+    width: 28px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--gray-11);
+}
+
+.AppToastClose:hover {
+    background-color: var(--gray-a3);
+    color: var(--gray-12);
+}
+
+@keyframes app-toast-slide-in {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes app-toast-hide {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
+}
+
+.AppToastRoot[data-state="open"] {
+    animation: app-toast-slide-in 150ms ease-out;
+}
+
+.AppToastRoot[data-state="closed"] {
+    animation: app-toast-hide 100ms ease-in forwards;
+}
+
+.AppToastRoot[data-swipe="move"] {
+    transform: translateX(var(--radix-toast-swipe-move-x));
+}
+
+.AppToastRoot[data-swipe="cancel"] {
+    transform: translateX(0);
+    transition: transform 200ms ease-out;
+}
+
+.AppToastRoot[data-swipe="end"] {
+    animation: app-toast-hide 100ms ease-out forwards;
+}

@@ -16,7 +16,7 @@ import { useNavigate } from "react-router-dom";
 import { NIL as NIL_UUID } from "uuid";
 import { MetricsTrends } from "../components/MetricsTrends";
 import { getAllAccounts } from "../services/accountService";
-import type {AccountListResponse} from "../models/responses/accountListResponse";
+import type {AccountListResponse} from "../models/responses/accountResponse";
 import {formatDateNumeric} from "../utils/dateUtils";
 
 export default function AccountsPage() {

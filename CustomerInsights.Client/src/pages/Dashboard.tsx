@@ -4,12 +4,22 @@ import {ChannelChart} from "../components/ChannelChart";
 import TopAccountList from "../components/lists/TopAccountList";
 import {MetricsTrends} from "../components/MetricsTrends";
 import Header from "../components/headers/Header";
+import React, { useState } from "react";
+import type {TimeInterval} from "@/src/types.ts";
 
 export function Dashboard() {
+    const [interval, setInterval] = useState<TimeInterval>("0");
     return (
         <Box flexGrow="1" p="6">
-            <Header showTimeInterval={true} showRefresh={true}/>
-            <MetricsTrends/>
+            <Header
+                showTimeInterval={true}
+                showRefresh={true}
+                selectedInterval={interval}
+                onIntervalChange={setInterval}
+            />
+
+            <MetricsTrends timeInterval={interval} />
+
             <Flex direction="column" wrap="wrap">
                 <Card style={{ flex: 1, minWidth: 320, zIndex: 4 }} variant="surface" size="3" mb="6">
                     <SentimentChart/>

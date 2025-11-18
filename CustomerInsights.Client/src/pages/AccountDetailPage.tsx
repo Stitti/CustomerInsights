@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
     Box,
     Card,
@@ -13,13 +13,16 @@ import {
     Skeleton,
 } from "@radix-ui/themes";
 import { CopyIcon } from "lucide-react";
-import {useNavigate, useParams} from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { MetricsTrends } from "../components/MetricsTrends";
 import ModifiedCard from "../components/ModifiedCard";
 import BackButton from "../components/BackButton";
-import { getAccountById } from "../services/accountService";
-import type {AccountResponse} from "@/src/models/responses/accountResponse.ts";
+import { getAccountById, deleteAccountById, patchAccount } from "../services/accountService";
+import type { AccountResponse } from "@/src/models/responses/accountResponse.ts";
+import type { UpdateAccountRequest } from "@/src/models/requests/accountRequests.ts";
 import Header from "../components/headers/Header";
+import type { TimeInterval } from "@/src/types";
+import {useActionLoader} from "../components/ActionLoaderProvider";
 
 const CLASSIFICATION_LABEL: Record<number | string, string> = {
     1: "A",
@@ -27,37 +30,65 @@ const CLASSIFICATION_LABEL: Record<number | string, string> = {
     3: "C",
 };
 
+function buildAccountPatch(
+    original: AccountResponse,
+    current: AccountResponse
+): UpdateAccountRequest {
+    const patch: UpdateAccountRequest = {};
+
+    if (original.name !== current.name)
+        patch.name = current.name ?? null;
+
+    if (original.externalId !== current.externalId)
+        patch.externalId = current.externalId ?? null;
+
+    const originalParentId = original.parentAccount?.id ?? null;
+    const currentParentId = current.parentAccount?.id ?? null;
+    if (originalParentId !== currentParentId)
+        patch.parentAccountId = currentParentId;
+
+    if (original.industry !== current.industry)
+        patch.industry = current.industry ?? null;
+
+    if (original.country !== current.country)
+        patch.country = current.country ?? null;
+
+    if (original.classification !== current.classification)
+        patch.classification = current.classification ?? null;
+
+    return patch;
+}
+
 export function AccountDetailPage() {
     const { accountId } = useParams<{ accountId: string }>();
     const [account, setAccount] = useState<AccountResponse | null>(null);
+    const [originalAccount, setOriginalAccount] = useState<AccountResponse | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
     const [copyOK, setCopyOK] = useState<boolean>(false);
+    const [interval, setInterval] = useState<TimeInterval>("0");
     const navigate = useNavigate();
+    const { withLoader } = useActionLoader();
+
+    const loadAccount = useCallback(async () => {
+        if (!accountId) return;
+
+        setLoading(true);
+        try {
+            const data = await getAccountById(accountId);
+            setAccount(data ?? null);
+            setOriginalAccount(data ?? null);
+        } catch (err) {
+            console.error("Error loading account:", err);
+            setAccount(null);
+            setOriginalAccount(null);
+        } finally {
+            setLoading(false);
+        }
+    }, [accountId]);
 
     useEffect(() => {
-        let mounted = true;
-        setLoading(true);
-        console.log(accountId)
-        getAccountById(accountId!)
-            .then((data) => {
-                console.log(data);
-                if (mounted)
-                    setAccount(data ?? null);
-            })
-            .catch((err) => {
-                console.error("Error loading account:", err);
-                if (mounted)
-                    setAccount(null);
-            })
-            .finally(() => {
-                if (mounted)
-                    setLoading(false);
-            });
-
-        return () => {
-            mounted = false;
-        };
-    }, [accountId]);
+        loadAccount();
+    }, [loadAccount]);
 
     const displayName = account?.name ?? "";
     const displayClassification =
@@ -67,7 +98,7 @@ export function AccountDetailPage() {
     const displayCountry = account?.country ?? "";
     const externalId = account?.externalId ?? "";
     const contacts = account?.contacts ?? [];
-    const interactions = [];
+    const interactions: any[] = [];
     const satisfactionIndex = account?.satisfactionState?.satisfactionIndex;
 
     const onCopyExternalId = async () => {
@@ -80,12 +111,64 @@ export function AccountDetailPage() {
         }
     };
 
+    const handleDelete = async () => {
+        if (!accountId) return;
+
+        try {
+            await withLoader("Account wird gelöscht...", async () => {
+                await deleteAccountById(accountId!);
+                navigate(-1);
+            });
+        } catch (e) {
+            console.error("Delete failed", e);
+        }
+    };
+
+    const handleSave = async () => {
+        if (!accountId || !account || !originalAccount) return;
+
+        const patch = buildAccountPatch(originalAccount, account);
+
+        if (Object.keys(patch).length === 0) {
+            console.log("Nothing to update.");
+            return;
+        }
+
+        try {
+            await withLoader("Updating account...", async () => {
+                await patchAccount(accountId, patch);
+                await loadAccount();
+            });
+        } catch (e) {
+            console.error("Update failed", e);
+        }
+    };
+
+    const handleRefresh = async () => {
+        await withLoader("Loading account...", async () => {
+            await loadAccount();
+            navigate(-1);
+        });
+    };
+
     return (
         <Box flexGrow="1" p="6">
             <BackButton />
             <Flex gap="3" direction="column" wrap="wrap">
-                <Header title={displayName} showTimeInterval={true} showDelete={true} showSave={true} showRefresh={true} />
-                <MetricsTrends accountId={accountId} />
+                <Header
+                    title={displayName}
+                    showTimeInterval={true}
+                    showDelete={true}
+                    showSave={true}
+                    showRefresh={true}
+                    onDeleteClick={handleDelete}
+                    onSaveClick={handleSave}
+                    onRefreshClick={handleRefresh}
+                    selectedInterval={interval}
+                    onIntervalChange={setInterval}
+                />
+
+                <MetricsTrends accountId={accountId} timeInterval={interval} />
 
                 <Card style={{ flex: 1, minWidth: "100%" }} variant="ghost" mb="4">
                     <Flex direction="row" gap="8" wrap="wrap">
@@ -232,7 +315,11 @@ export function AccountDetailPage() {
                                 ))
                                 : contacts.length > 0
                                     ? contacts.map((c) => (
-                                        <Table.Row key={c.id} onClick={() => navigate(`/contacts/${c.id}`)} style={{ cursor: "pointer" }}>
+                                        <Table.Row
+                                            key={c.id}
+                                            onClick={() => navigate(`/contacts/${c.id}`)}
+                                            style={{ cursor: "pointer" }}
+                                        >
                                             <Table.Cell>{`${c.firstname} ${c.lastname}`}</Table.Cell>
                                             <Table.Cell>{c.email}</Table.Cell>
                                             <Table.Cell>{c.phone}</Table.Cell>
@@ -279,7 +366,11 @@ export function AccountDetailPage() {
                                 ))
                                 : interactions.length > 0
                                     ? interactions.map((it) => (
-                                        <Table.Row key={it.id} onClick={() => navigate(`/interactions/${it.id}`)} style={{ cursor: "pointer" }}>
+                                        <Table.Row
+                                            key={it.id}
+                                            onClick={() => navigate(`/interactions/${it.id}`)}
+                                            style={{ cursor: "pointer" }}
+                                        >
                                             <Table.Cell>{it.title}</Table.Cell>
                                             <Table.Cell>{it.channel}</Table.Cell>
                                             <Table.Cell>{it.occurredAt}</Table.Cell>

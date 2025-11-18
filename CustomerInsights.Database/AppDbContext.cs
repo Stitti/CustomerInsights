@@ -56,7 +56,6 @@ public class AppDbContext : DbContext
                .HasForeignKey(c => c.AccountId)
                .OnDelete(DeleteBehavior.Cascade);
 
-            // Optional: Inverse für Interactions (neu)
             cfg.HasMany(a => a.Interactions)
                .WithOne(i => i.Account)
                .HasForeignKey(i => i.AccountId)

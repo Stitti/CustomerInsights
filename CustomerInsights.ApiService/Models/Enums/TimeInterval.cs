@@ -2,11 +2,11 @@
 {
     public enum TimeInterval
     {
-        ThisWeek,
-        ThisMonth,
-        ThisYear,
-        LastWeek,
-        LastMonth,
-        LastYear
+        ThisWeek = 0,
+        ThisMonth = 1,
+        ThisYear = 2,
+        LastWeek = 3,
+        LastMonth = 4,
+        LastYear = 5
     }
 }

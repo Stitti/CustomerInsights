@@ -134,8 +134,8 @@ export default function InteractionsPage() {
                                     >
                                         <Table.Cell>{interaction.subject}</Table.Cell>
                                         <Table.Cell>{interaction.channel}</Table.Cell>
-                                        <Table.Cell>{interaction.contactId}</Table.Cell>
-                                        <Table.Cell>{interaction.accountId}</Table.Cell>
+                                        <Table.Cell>{`${interaction.contact?.firstname} ${interaction.contact?.firstname}`}</Table.Cell>
+                                        <Table.Cell>{interaction.account?.name}</Table.Cell>
                                         <Table.Cell>{interaction.occurredAt ? formatDateNumeric.format(new Date(interaction.occurredAt)): ''}</Table.Cell>
                                     </Table.Row>
                                 ))}

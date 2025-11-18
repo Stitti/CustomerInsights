@@ -7,7 +7,7 @@ webApplicationBuilder.Services.AddControllers();
 webApplicationBuilder.Services.AddEndpointsApiExplorer();
 webApplicationBuilder.Services.AddSwaggerGen();
 
-webApplicationBuilder.Services.AddSingleton<WordPieceTokenizer>();
+webApplicationBuilder.Services.AddSingleton<WordPieceTokenizerAdapter>();
 
 webApplicationBuilder.Services.AddSingleton<OnnxEmbeddingProvider>();
 

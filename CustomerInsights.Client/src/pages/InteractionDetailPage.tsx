@@ -7,7 +7,6 @@ import {
     DataList,
     Flex,
     IconButton,
-    Link,
     Text,
     Skeleton,
 } from "@radix-ui/themes";
@@ -19,6 +18,7 @@ import Header from "../components/headers/Header";
 import { useParams, useNavigate } from "react-router-dom";
 import { getInteractionById, deleteInteractionById } from "../services/interactionService";
 import type { InteractionResponse } from "@/src/models/responses/interactionResponse";
+import {useActionLoader} from "../components/ActionLoaderProvider";
 
 const CHANNEL_LABEL: Record<number, string> = {
     1: "Phone",
@@ -46,22 +46,22 @@ function formatDate(d?: string | Date | null) {
 }
 
 export function InteractionDetailPage() {
-    const { id } = useParams<{ id: string }>();
+    const { interactionId } = useParams<{ interactionId: string }>();
     const navigate = useNavigate();
+    const { withLoader } = useActionLoader();
 
     const [loading, setLoading] = React.useState(true);
     const [interaction, setInteraction] = React.useState<InteractionResponse | null>(null);
     const [copyOK, setCopyOK] = React.useState(false);
 
-    // TagEditor-States (werden nach Load aus textInference befüllt)
     const [emotions, setEmotions] = React.useState<string[]>([]);
     const [aspects, setAspects] = React.useState<string[]>([]);
 
     const fetchData = React.useCallback(async () => {
-        if (!id) return;
+        if (!interactionId) return;
         setLoading(true);
         try {
-            const data = await getInteractionById(id);
+            const data = await getInteractionById(interactionId);
             setInteraction(data ?? null);
 
             const emo = data?.textInference?.emotions?.map(e => e.label).filter(Boolean) ?? [];
@@ -76,7 +76,7 @@ export function InteractionDetailPage() {
         } finally {
             setLoading(false);
         }
-    }, [id]);
+    }, [interactionId]);
 
     React.useEffect(() => {
         fetchData();
@@ -98,15 +98,20 @@ export function InteractionDetailPage() {
         }
     };
 
-    const onRefresh = async () => {
-        await fetchData();
+    const handleRefresh = async () => {
+        await withLoader("Account wird gelöscht...", async () => {
+            await fetchData();
+        });
     };
 
-    const onDelete = async () => {
-        if (!interaction?.id) return;
+    const handleDelete = async () => {
+        if (!interaction?.id)
+            return;
         try {
-            await deleteInteractionById(interaction.id);
-            navigate(-1);
+            await withLoader("Account wird gelöscht...", async () => {
+                await deleteInteractionById(interaction.id);
+                navigate(-1);
+            });
         } catch (e) {
             console.error("Delete failed", e);
         }
@@ -119,6 +124,8 @@ export function InteractionDetailPage() {
                 showSave={true}
                 showDelete={true}
                 showRefresh={true}
+                onDeleteClick={handleDelete}
+                onRefreshClick={handleRefresh}
             />
 
             <Flex gap="9" direction="column" wrap="wrap">

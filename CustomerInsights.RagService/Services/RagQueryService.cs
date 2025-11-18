@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using CustomerInsights.RagService.Models;
 
 namespace CustomerInsights.RagService.Services
@@ -7,13 +5,13 @@ namespace CustomerInsights.RagService.Services
     public class RagQueryService
     {
         private readonly EmbeddingClient _embeddingClient;
-        private readonly InteractionRepository _interactionRepository;
+        private readonly InteractionEmbeddingRepository _interactionEmbeddingRepository;
         private readonly OllamaChatClient _chatClient;
 
-        public RagQueryService(EmbeddingClient embeddingClient, InteractionRepository interactionRepository, OllamaChatClient chatClient)
+        public RagQueryService(EmbeddingClient embeddingClient, InteractionEmbeddingRepository interactionEmbeddingRepository, OllamaChatClient chatClient)
         {
             _embeddingClient = embeddingClient;
-            _interactionRepository = interactionRepository;
+            _interactionEmbeddingRepository = interactionEmbeddingRepository;
             _chatClient = chatClient;
         }
 
@@ -21,7 +19,7 @@ namespace CustomerInsights.RagService.Services
         {
             double[] queryEmbedding = await _embeddingClient.CreateEmbeddingAsync(request.Question);
 
-            IList<RagDocument> documents = await _interactionRepository.GetRelevantDocumentsAsync(
+            IList<RagDocument> documents = await _interactionEmbeddingRepository.GetRelevantDocumentsAsync(
                 queryEmbedding,
                 request.CompanyId,
                 request.Product,

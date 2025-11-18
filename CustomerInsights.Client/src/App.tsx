@@ -1,6 +1,6 @@
 import React from 'react'
 import {Dashboard} from "./pages/Dashboard";
-import AppLayout from "./components/layouts/AppLayout.tsx";
+import AppLayout from "./components/layouts/AppLayout";
 import {BrowserRouter, Route, Routes} from 'react-router-dom';
 import ContactsPage from "./pages/ContactsPage";
 import AccountsPage from "./pages/AccountsPage";
@@ -16,7 +16,7 @@ import SetNewPasswordPage from "./pages/auth/SetNewPasswordPage";
 import ResetPasswordConfirmationPage from "./pages/auth/ResetPasswordConfirmationPage";
 import {ProfilePage} from "./pages/ProfilePage";
 import {UserPage} from "./pages/admin/UserPage";
-import AdminAppLayout from "./components/layouts/AdminAppLayout.tsx";
+import AdminAppLayout from "./components/layouts/AdminAppLayout";
 import ApiKeyManagementPage from "./pages/admin/ApiManagementPage";
 import ApiKeyDetail from "./pages/admin/ApiKeyDetail";
 import SignalsPage from "./pages/SignalsPage";
@@ -25,7 +25,6 @@ import CategoryAnalysisPage from "./pages/CategoryAnalysisPage";
 import JourneyAnalysisPage from "./pages/JourneyAnalysisPage";
 import JourneyStepDetailPage from "./pages/JourneyStepDetailPage";
 import IntegrationsPage from "./pages/admin/IntegrationsPage";
-import IntegrationsPage from "@/src/pages/admin/IntegrationsPage";
 import NotFound from "./pages/NotFound";
 import Unauthorized from "./pages/Unauthorized"
 import TenantCreationPage from "./pages/TenantCreationPage";

@@ -17,28 +17,17 @@ import { CopyIcon, MailIcon, PhoneIcon } from "lucide-react";
 import ModifiedCard from "../components/ModifiedCard";
 import LookupField from "../components/LookupField";
 import {useNavigate, useParams} from "react-router-dom";
-import type { Interaction } from "../models/interaction";
 import type { Account } from "../models/account";
-import { getContactById } from "../services/contactService";
+import {deleteContactById, getContactById} from "../services/contactService";
 import type {ContactResponse} from "@/src/models/responses/contactResponse.ts";
 import Header from "../components/headers/Header";
+import { useToast } from "../components/AppToast";
+import {useActionLoader} from "../components/ActionLoaderProvider";
 
 type ContactAccount = Pick<Account, "id" | "name" | "industry" | "classification"> & {
     createdAt?: string;
     parentAccountId?: string | null;
     parentAccountName?: string | null;
-};
-
-type ContactDetail = {
-    id: string;
-    externalId?: string;
-    firstname: string;
-    lastname: string;
-    email?: string;
-    phone?: string;
-    account?: ContactAccount | null;
-    interactions?: Interaction[];
-    createdAt?: string;
 };
 
 const CHANNEL_LABEL: Record<number, string> = {
@@ -62,6 +51,8 @@ export function ContactDetailPage() {
     const [loading, setLoading] = useState<boolean>(true);
     const [copied, setCopied] = useState(false);
     const navigate = useNavigate();
+    const { showToast } = useToast();
+    const { withLoader } = useActionLoader();
 
     useEffect(() => {
         let mounted = true;
@@ -105,9 +96,35 @@ export function ContactDetailPage() {
         }
     };
 
+    const handleDelete = async () => {
+        if (!contactId)
+            return;
+
+        try {
+            await withLoader("Kontakt wird gelöscht...", async () => {
+                await deleteContactById(contactId!);
+                navigate(-1);
+            });
+
+            showToast({
+                title: "Kontakt gelöscht",
+                description: `${firstname} ${lastname} wurde erfolgreich gelöscht.`,
+            });
+
+            navigate(-1);
+        } catch (e) {
+            console.error("Delete failed", e);
+
+            showToast({
+                title: "Fehler beim Löschen",
+                description: "Der Kontakt konnte nicht gelöscht werden.",
+            });
+        }
+    };
+
     return (
         <Box flexGrow="1" p="6">
-            <Header title={`${firstname} ${lastname}`} showRefresh={true} showSave={true} showDelete={true}/>
+            <Header title={`${firstname} ${lastname}`} showRefresh={true} showSave={true} showDelete={true} onDeleteClick={handleDelete}/>
             <Flex gap="3" direction="column" wrap="wrap">
                 <Card style={{ flex: 1, minWidth: "100%" }} variant="ghost" mb="4">
                     <Flex direction="row" gap="8" wrap="wrap">

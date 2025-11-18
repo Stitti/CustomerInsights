@@ -1,7 +1,9 @@
 using System;
+using CustomerInsights.Database;
 using CustomerInsights.RagService.Services;
 using CustomerInsights.ServiceDefaults;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -20,6 +22,20 @@ namespace CustomerInsights.RagService
 
             IConfiguration configuration = builder.Configuration;
             builder.AddLogging();
+
+            string? connectionString = builder.Configuration.GetConnectionString("customer-insights-db");
+            if (string.IsNullOrWhiteSpace(connectionString))
+                throw new Exception("Database connection string is missing on configuration");
+
+            builder.Services.AddDbContext<AppDbContext>(options =>
+            {
+                options.UseNpgsql(
+                    connectionString,
+                    npgsqlOptions =>
+                    {
+                        npgsqlOptions.UseVector();
+                    });
+            });
 
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
@@ -58,7 +74,7 @@ namespace CustomerInsights.RagService
             // Services
             builder.Services.AddScoped<EmbeddingClient>();
             builder.Services.AddScoped<OllamaChatClient>();
-            builder.Services.AddScoped<InteractionRepository>();
+            builder.Services.AddScoped<InteractionEmbeddingRepository>();
             builder.Services.AddScoped<RagQueryService>();
 
             WebApplication webApplication = builder.Build();
@@ -85,6 +101,7 @@ namespace CustomerInsights.RagService
             {
                 Log.Information("Application is shutting down...");
                 Log.CloseAndFlush();
-            }        }
+            }
+        }
     }
 }

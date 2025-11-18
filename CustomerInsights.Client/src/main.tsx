@@ -5,11 +5,17 @@ import App from "./App";
 import './i18n';
 import './css/global.css'
 import {ThemeProvider} from "./theme/ThemeProvider";
+import {AppToastProvider} from "./components/AppToast";
+import {ActionLoaderProvider} from "./components/ActionLoaderProvider";
 
 function Root() {
     return (
         <ThemeProvider>
-            <App/>
+            <AppToastProvider>
+                <ActionLoaderProvider>
+                    <App/>
+                </ActionLoaderProvider>
+            </AppToastProvider>
         </ThemeProvider>
     );
 }
