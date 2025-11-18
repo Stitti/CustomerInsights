@@ -1,6 +1,5 @@
 using CustomerInsights.WebhookWorker;
 using CustomerInsights.WebhookWorker.Services;
-using Microsoft.EntityFrameworkCore;
 using Polly;
 using Polly.Contrib.WaitAndRetry;
 using Polly.Retry;

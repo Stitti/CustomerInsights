@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Text.Json;
 using CustomerInsights.Base.Models.Responses;
+using CustomerInsights.NlpRuntime;
 using SessionOptions = Microsoft.ML.OnnxRuntime.SessionOptions;
 
 namespace CustomerInsights.NlpService.Runtime;

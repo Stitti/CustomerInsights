@@ -36,6 +36,7 @@
 	<ItemGroup>
 	<ProjectReference Include="..\CustomerInsights.Base\CustomerInsights.Models.csproj" />
 	<ProjectReference Include="..\CustomerInsights.Base\CustomerInsights.Base.csproj" />
+	<ProjectReference Include="..\CustomerInsights.NlpRuntime\CustomerInsights.NlpRuntime.csproj" />
 	<ProjectReference Include="..\CustomerInsights.ServiceDefaults\CustomerInsights.ServiceDefaults.csproj" />
 	<ProjectReference Include="..\CustomerInsights.Base\CustomerInsights.Base.csproj" />
   </ItemGroup>

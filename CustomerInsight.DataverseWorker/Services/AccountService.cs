@@ -17,7 +17,7 @@ namespace CustomerInsight.DataverseWorker.Services
         private async Task<IEnumerable<Entity>> RetrieveAccounts(DateTime lastRun)
         {
             ColumnSet columnSet = new ColumnSet("name", "parentcustomerid");
-            List<Entity> contacts = await GetAllNewRecords("account", lastRun, columnSet);
+            List<Entity> accounts = await GetAllNewRecords("account", lastRun, columnSet);
         }
     }
 }

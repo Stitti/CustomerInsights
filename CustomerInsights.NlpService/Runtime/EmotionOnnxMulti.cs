@@ -1,5 +1,6 @@
 using System.Text.Json;
 using CustomerInsights.Base.Models.Responses;
+using CustomerInsights.NlpRuntime;
 using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.OnnxRuntime.Tensors;
 

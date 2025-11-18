@@ -18,7 +18,7 @@ namespace CustomerInsights.DataverseWorker.Services
         protected async Task<List<Entity>> GetAllNewRecords(string entityName, DateTime lastRun, ColumnSet columnSet)
         {
             FilterExpression filter = new FilterExpression(LogicalOperator.And);
-            filter.AddCondition(new ConditionExpression("modifiedon", ConditionOperator.GreaterThan, lastRun));
+            filter.AddCondition(new ConditionExpression("createdxon", ConditionOperator.GreaterThan, lastRun));
             filter.AddCondition(new ConditionExpression("statecode", ConditionOperator.Equal, 0));
             QueryExpression query = new QueryExpression
             {
