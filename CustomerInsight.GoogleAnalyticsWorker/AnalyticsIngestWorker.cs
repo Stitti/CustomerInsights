@@ -57,14 +57,14 @@ namespace CustomerInsight.GoogleAnalyticsWorker
 
         private async Task IngestAllTenants(CancellationToken ct)
         {
-            var tenants = await _tenantRepository.GetActiveTenantsAsync(ct);
+            IReadOnlyList<Guid> tenants = await _tenantRepository.GetActiveTenantsAsync(ct);
             _logger.LogInformation("Starte Ingest für {Count} Mandanten …", tenants.Count);
 
             DateOnly day = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-1)); // „gestern“ (idempotent)
 
             // Limitierte Parallelität
             using SemaphoreSlim sem = new SemaphoreSlim(_maxParallel);
-            var tasks = tenants.Select(async tenantId =>
+            Task[] tasks = tenants.Select(async tenantId =>
             {
                 await sem.WaitAsync(ct);
                 try
@@ -90,28 +90,26 @@ namespace CustomerInsight.GoogleAnalyticsWorker
 
         private async Task IngestOneTenant(Guid tenantId, DateOnly day, CancellationToken ct)
         {
-            var conn = await _tenantRepository.GetGoogleConnectionAsync(tenantId, ct);
+            TenantGoogleConnection? conn = await _tenantRepository.GetGoogleConnectionAsync(tenantId, ct);
             if (conn is null)
             {
                 _logger.LogDebug("Mandant {Tenant} hat keine Google-Verbindung.", tenantId);
                 return;
             }
 
-            // Access Token je Mandant ziehen
-            var accessToken = await _tokenService.GetAccessTokenAsync(conn.RefreshToken, conn.Scopes, ct);
-
-            var properties = await _tenantRepository.GetGa4PropertiesAsync(tenantId, ct);
+            string accessToken = await _tokenService.GetAccessTokenAsync(conn.RefreshToken, conn.Scopes, ct);
+            IReadOnlyList<string> properties = await _tenantRepository.GetGa4PropertiesAsync(tenantId, ct);
             foreach (var prop in properties)
             {
                 try
                 {
-                    var rows = await _gaClient.GetDailyReportAsync(accessToken, prop, day, ct);
+                    IEnumerable<GaRow> rows = await _gaClient.GetDailyReportAsync(accessToken, prop, day, ct);
                     await _websiteReportRepository.UpsertDailyReportAsync(tenantId, prop, day, rows, ct);
-                    _logger.LogInformation("OK: {Tenant} {Prop} {Day}", tenantId, prop.Value, day);
+                    _logger.LogInformation("OK: {Tenant} {Prop} {Day}", tenantId, prop, day);
                 }
                 catch (Exception ex) when (IsPermissionIssue(ex))
                 {
-                    _logger.LogWarning(ex, "Keine Berechtigung für Property {Prop} bei Mandant {Tenant}.", prop.Value, tenantId);
+                    _logger.LogWarning(ex, "Keine Berechtigung für Property {Prop} bei Mandant {Tenant}.", prop, tenantId);
                     // Optional: Property deaktivieren/flaggen
                 }
             }
@@ -123,8 +121,7 @@ namespace CustomerInsight.GoogleAnalyticsWorker
         }
         private static bool IsPermissionIssue(Exception ex)
         {
-            return ex.Message.Contains("insufficientPermissions", StringComparison.OrdinalIgnoreCase)
-                || ex.Message.Contains("permission", StringComparison.OrdinalIgnoreCase);
+            return ex.Message.Contains("insufficientPermissions", StringComparison.OrdinalIgnoreCase) || ex.Message.Contains("permission", StringComparison.OrdinalIgnoreCase);
         }
     }
 }

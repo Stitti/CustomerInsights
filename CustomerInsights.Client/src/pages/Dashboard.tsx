@@ -4,6 +4,7 @@ import {ChannelChart} from "../components/ChannelChart";
 import TopAccountList from "../components/TopAccountList";
 import {DashboardHeader} from "../components/DashboardHeader";
 import {MetricsTrends} from "../components/MetricsTrends";
+import {Stepper} from "@/src/components/Stepper";
 
 export function Dashboard() {
     return (
@@ -11,7 +12,7 @@ export function Dashboard() {
             <DashboardHeader/>
             <MetricsTrends/>
             <Flex direction="column" wrap="wrap">
-                <Card style={{ flex: 1, minWidth: 320 }} variant="surface" size="3" mb="6">
+                <Card style={{ flex: 1, minWidth: 320, zIndex: 4 }} variant="surface" size="3" mb="6">
                     <SentimentChart/>
                 </Card>
                 <Flex direction="row" gap="8" wrap="wrap">

@@ -25,11 +25,15 @@ import CategoryAnalysisPage from "./pages/CategoryAnalysisPage";
 import JourneyAnalysisPage from "./pages/JourneyAnalysisPage";
 import JourneyStepDetailPage from "./pages/JourneyStepDetailPage";
 import IntegrationsPage from "@/src/pages/admin/IntegrationsPage";
+import NotFound from "./pages/NotFound";
+import Unauthorized from "./pages/Unauthorized"
+import TenantCreationPage from "./pages/TenantCreationPage";
 
 function App() {
     return (
         <BrowserRouter>
             <Routes>
+                <Route path="/setup" element={<TenantCreationPage/>}/>
                 <Route path="/login" element={<LoginPage/>}/>
                 <Route path="/reset-password" element={<ResetPasswordPage/>}/>
                 <Route path="/set-password" element={<SetNewPasswordPage/>}/>
@@ -65,6 +69,8 @@ function App() {
                     <Route path="admin/apikeys" element={<ApiKeyManagementPage/>}/>
                     <Route path="admin/apikeys/:apiKeyId" element={<ApiKeyDetail/>}/>
                 </Route>
+                <Route path="/unauthorized" element={<Unauthorized />} />
+                <Route path="*" element={<NotFound />} />
             </Routes>
         </BrowserRouter>
   );
