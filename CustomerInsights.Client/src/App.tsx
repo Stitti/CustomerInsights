@@ -28,6 +28,7 @@ import IntegrationsPage from "./pages/admin/IntegrationsPage";
 import NotFound from "./pages/NotFound";
 import Unauthorized from "./pages/Unauthorized"
 import TenantCreationPage from "./pages/TenantCreationPage";
+import {SupportForm} from "./pages/SupportForm";
 
 function App() {
     return (
@@ -68,6 +69,7 @@ function App() {
                     <Route path="admin/integrations" element={<IntegrationsPage/>}/>
                     <Route path="admin/apikeys" element={<ApiKeyManagementPage/>}/>
                     <Route path="admin/apikeys/:apiKeyId" element={<ApiKeyDetail/>}/>
+                    <Route path="admin/support" element={<SupportForm/>}/>
                 </Route>
                 <Route path="/unauthorized" element={<Unauthorized />} />
                 <Route path="*" element={<NotFound />} />

@@ -19,7 +19,7 @@ public sealed class AccountRepository
         _logger = logger;
     }
 
-    public async Task<Account> CreateAsync(Account account, CancellationToken ct = default)
+    public async Task<Account> CreateAsync(Account account, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(account.Name))
             throw new ArgumentException("Account name is required.", nameof(account));
@@ -45,7 +45,7 @@ public sealed class AccountRepository
         return account;
     }
 
-    public async Task<IEnumerable<AccountListDto>> GetAllWithParentAsync(CancellationToken ct = default)
+    public async Task<IEnumerable<AccountListDto>> GetAllWithParentAsync(CancellationToken ct)
     {
         List<AccountListDto> accounts = await _db.Accounts
             .AsNoTracking()
@@ -68,7 +68,7 @@ public sealed class AccountRepository
         return accounts;
     }
 
-    public async Task<AccountDto?> GetByIdWithDetailsAsync(Guid accountId, int interactionsSkip = 0, int interactionsTake = 200, CancellationToken ct = default)
+    public async Task<AccountDto?> GetByIdWithDetailsAsync(Guid accountId, CancellationToken ct, int interactionsSkip = 0, int interactionsTake = 200)
     {
         if (accountId == Guid.Empty)
             return null;
@@ -123,30 +123,39 @@ public sealed class AccountRepository
         return account;
     }
 
-    public async Task<bool> Patch(Guid id, UpdateAccountRequest request)
+    public async Task<bool> PatchAsync(Guid id, UpdateAccountRequest request, CancellationToken cancellationToken)
     {
-        Account? account = await _db.Accounts.FirstOrDefaultAsync(x => x.Id == id);
-        if (account == null) 
+        Account? account = await _db.Accounts.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+        if (account == null)
             return false;
 
         account.ApplyPatch(request);
 
         try
         {
-            await _db.SaveChangesAsync();
+            await _db.SaveChangesAsync(cancellationToken);
             return true;
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Failed to patch account {AccountId}", id);
             return false;
         }
     }
 
-    public async Task<bool> Delete(Guid id)
+    public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken)
     {
-        int affectedRows = await _db.Accounts.Where(x => x.Id == id)
-                                             .ExecuteDeleteAsync();
+        try
+        {
+            int affectedRows = await _db.Accounts.Where(x => x.Id == id)
+                                                 .ExecuteDeleteAsync(cancellationToken);
 
-        return affectedRows > 0;
+            return affectedRows > 0;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to delete account {AccountId}", id);
+            return false;
+        }
     }
 }

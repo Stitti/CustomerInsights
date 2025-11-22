@@ -1,0 +1,59 @@
+.attachment-dropzone {
+    border-width: 1px;
+    border-style: dashed;
+    border-radius: var(--radius-3);
+    padding: var(--space-3);
+    cursor: pointer;
+    transition:
+            border-color 120ms ease-out,
+            background-color 120ms ease-out,
+            box-shadow 120ms ease-out,
+            transform 120ms ease-out;
+}
+
+.attachment-dropzone:hover {
+    box-shadow:
+            0 0 0 1px color-mix(in srgb, var(--accent-7) 35%, transparent),
+            0 10px 25px -20px rgba(0, 0, 0, 0.35);
+    transform: translateY(-1px);
+}
+
+.attachment-dropzone-icon {
+    border-radius: var(--radius-2);
+    padding: var(--space-2);
+    background-color: color-mix(in srgb, var(--accent-3) 45%, transparent);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.attachment-dropzone-icon-svg {
+    width: 18px;
+    height: 18px;
+    color: var(--accent-9);
+}
+
+.attachment-list {
+    border-radius: var(--radius-2);
+    border: 1px solid var(--gray-a4);
+    background-color: color-mix(in srgb, var(--color-panel) 80%, transparent);
+}
+
+.attachment-list-item {
+    padding: var(--space-2) var(--space-3);
+}
+
+.attachment-list-item + .attachment-list-item {
+    border-top: 1px solid var(--gray-a4);
+}
+
+.attachment-list-meta {
+    min-width: 0;
+}
+
+.attachment-list-meta > span:first-child {
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}

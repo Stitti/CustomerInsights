@@ -17,7 +17,7 @@ public sealed class ContactRepository
         _logger = logger;
     }
 
-    public async Task<Contact> CreateAsync(Contact contact, Guid accountId, CancellationToken ct = default)
+    public async Task<Contact> CreateAsync(Contact contact, Guid accountId, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(contact.Firstname) && string.IsNullOrWhiteSpace(contact.Lastname))
             throw new ArgumentException("Contact must have a name (Firstname or Lastname).");
@@ -42,9 +42,9 @@ public sealed class ContactRepository
         return contact;
     }
 
-    public async Task<IReadOnlyList<ContactListDto>> GetAllWithAccountAsync(string? search = null, int skip = 0, int take = 100, CancellationToken ct = default)
+    public async Task<IReadOnlyList<ContactListDto>> GetAllWithAccountAsync(CancellationToken cancellationToken, string? search = null, int skip = 0, int take = 100)
     {
-        var q = _db.Contacts
+        IQueryable<Contact> query = _db.Contacts
             .AsNoTracking()
             .Include(c => c.Account)
             .AsQueryable();
@@ -52,13 +52,13 @@ public sealed class ContactRepository
         if (string.IsNullOrWhiteSpace(search) == false)
         {
             string term = search.Trim().ToLower();
-            q = q.Where(c =>
+            query = query.Where(c =>
                 c.Firstname.ToLower().Contains(term) ||
                 c.Lastname.ToLower().Contains(term) ||
                 c.Email.ToLower().Contains(term));
         }
 
-        List<ContactListDto> contacts = await q
+        List<ContactListDto> contacts = await query
             .OrderBy(c => c.Lastname)
             .ThenBy(c => c.Firstname)
             .Skip(skip)
@@ -71,21 +71,20 @@ public sealed class ContactRepository
                 Email = c.Email,
                 Phone = c.Phone,
                 CreatedAt = c.CreatedAt,
-                AccountId = c.Account.Id,
-                AccountName = c.Account.Name
+                AccountId =  c.Account != null ? c.Account.Id : null,
+                AccountName = c.Account != null ? c.Account.Name: string.Empty
             })
-            .ToListAsync(ct);
+            .ToListAsync(cancellationToken);
 
         _logger.LogDebug("Fetched {Count} contacts", contacts.Count);
         return contacts;
     }
 
-    public async Task<ContactDto?> GetByIdWithAllAsync(Guid contactId, bool singleQuery = false, bool includeParentAccount = false, CancellationToken ct = default)
+    public async Task<ContactDto?> GetByIdWithAllAsync(Guid contactId, CancellationToken cancellationToken, bool singleQuery = false, bool includeParentAccount = false)
     {
         if (contactId == Guid.Empty)
             return null;
 
-        // Basis
         IQueryable<ContactDto> query = _db.Contacts
             .AsNoTracking()
             .Where(c => c.Id == contactId)
@@ -109,17 +108,14 @@ public sealed class ContactRepository
                 Interactions = c.Interactions
             });
 
-        ContactDto? contact = await query.SingleOrDefaultAsync(ct);
-
-        _logger.LogDebug("Loaded contact {Id} (account: {Account}, interactions: {Cnt})",
-            contact?.Id, contact?.Account?.Name, contact?.Interactions.Count);
-
+        ContactDto? contact = await query.SingleOrDefaultAsync(cancellationToken);
+        _logger.LogDebug("Loaded contact {Id} (account: {Account}, interactions: {Cnt})", contact?.Id, contact?.Account?.Name, contact?.Interactions.Count);
         return contact;
     }
 
-    public async Task<bool> Patch(Guid id, UpdateContactRequest request)
+    public async Task<bool> PatchAsync(Guid id, UpdateContactRequest request, CancellationToken cancellationToken)
     {
-        Contact? contact = await _db.Contacts.FirstOrDefaultAsync(x => x.Id == id);
+        Contact? contact = await _db.Contacts.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
         if (contact == null)
             return false;
 
@@ -127,7 +123,7 @@ public sealed class ContactRepository
 
         try
         {
-            await _db.SaveChangesAsync();
+            await _db.SaveChangesAsync(cancellationToken);
             return true;
         }
         catch (Exception ex)
@@ -136,10 +132,10 @@ public sealed class ContactRepository
         }
     }
 
-    public async Task<bool> Delete(Guid id)
+    public async Task<bool> Delete(Guid id, CancellationToken cancellationToken)
     {
         int affectedRows = await _db.Contacts.Where(x => x.Id == id)
-                                             .ExecuteDeleteAsync();
+                                             .ExecuteDeleteAsync(cancellationToken);
 
         return affectedRows > 0;
     }

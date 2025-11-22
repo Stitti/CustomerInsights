@@ -35,7 +35,7 @@ public sealed class MetricsController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to fetch metrics for interval {Interval}", interval);
+            _logger.LogError(ex, "Failed to fetch metrics for interval {Interval} for tenant {TenantId}", interval, tenantId);
             return StatusCode(StatusCodes.Status500InternalServerError, new ProblemDetails
             {
                 Title = "Fetch Failed",
@@ -80,7 +80,7 @@ public sealed class MetricsController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to fetch metrics for account {AccountId} with interval {Interval}", id, interval);
+            _logger.LogError(ex, "Failed to fetch metrics for account {AccountId} with interval {Interval} for tenant {TenantId}", id, interval, tenantId);
 
             return StatusCode(StatusCodes.Status500InternalServerError, new ProblemDetails
             {

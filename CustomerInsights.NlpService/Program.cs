@@ -1,70 +1,96 @@
+using CustomerInsights.Database;
+using CustomerInsights.NlpService;
+using CustomerInsights.NlpService.Repositories;
 using CustomerInsights.NlpService.Runtime;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.OpenApi.Models;
+using CustomerInsights.NlpService.Services;
 using CustomerInsights.ServiceDefaults;
+using CustomerInsights.ServiceDefaults.Models;
+using Microsoft.EntityFrameworkCore;
 using Serilog;
 
-WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+namespace CustomerInsights.EmailService;
 
-builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
-builder.AddServiceDefaults();
-
-builder.Services.AddScoped<ZeroShotAspectNliOnnx>();
-builder.Services.AddScoped<SentimentOnnx3>();
-builder.Services.AddScoped<EmotionOnnxMulti>();
-builder.Services.AddScoped<UrgencyOnnx3>();
-builder.Services.AddScoped<TextAnalyzer>();
-
-builder.AddLogging();
-
-builder.Services.AddControllers();
-
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(o =>
+public sealed class Program
 {
-    o.SwaggerDoc("v1", new OpenApiInfo { Title = "Internal API", Version = "v1" });
-    //o.AddServer(new OpenApiServer { Url = "http://localhost:5200" });
-});
-
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowAll", policy =>
+    public static void Main(string[] args)
     {
-        policy.AllowAnyOrigin()
-              .AllowAnyHeader()
-              .AllowAnyMethod();
-    });
-});
+        HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);
 
-WebApplication app = builder.Build();
+        builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+        builder.Services.Configure<RabbitMqConnectionOptions>(builder.Configuration.GetSection("RabbitMq"));
 
-app.MapDefaultEndpoints();
+        string? connectionString = builder.Configuration.GetConnectionString("customer-insights-db");
+        if (string.IsNullOrWhiteSpace(connectionString))
+        {
+            throw new Exception("Database connection string is missing on configuration");
+        }
 
-app.UseCors("AllowAll");
+        builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connectionString));
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
-else
-{
-    app.UseHsts();
-    app.UseHttpsRedirection();
-}
+        builder.AddLogging();
 
-try
-{
-    Log.Information("Starting application...");
-    await app.RunAsync();
-}
-catch (Exception ex)
-{
-    Log.Fatal(ex, "The application terminated unexpectedly.");
-    throw;
-}
-finally
-{
-    Log.Information("Application is shutting down...");
-    Log.CloseAndFlush();
+        builder.Services.AddHttpClient("PresidioAnalyzer", httpClient =>
+        {
+            string? analyzerUrl = builder.Configuration["Presidio:AnalyzerUrl"];
+            if (string.IsNullOrWhiteSpace(analyzerUrl))
+            {
+                throw new InvalidOperationException("Presidio Analyzer URL is not configured (Presidio:AnalyzerUrl).");
+            }
+
+            httpClient.BaseAddress = new Uri(analyzerUrl);
+            httpClient.Timeout = TimeSpan.FromSeconds(30);
+        });
+
+        builder.Services.AddHttpClient("PresidioAnonymizer", httpClient =>
+        {
+            string? anonymizerUrl = builder.Configuration["Presidio:AnonymizerUrl"];
+            if (string.IsNullOrWhiteSpace(anonymizerUrl))
+            {
+                throw new InvalidOperationException("Presidio Anonymizer URL is not configured (Presidio:AnonymizerUrl).");
+            }
+
+            httpClient.BaseAddress = new Uri(anonymizerUrl);
+            httpClient.Timeout = TimeSpan.FromSeconds(30);
+        });
+
+        builder.Services.AddSingleton<PresidioService>(serviceProvider =>
+        {
+            IHttpClientFactory httpClientFactory = serviceProvider.GetRequiredService<IHttpClientFactory>();
+
+            HttpClient analyzerHttpClient = httpClientFactory.CreateClient("PresidioAnalyzer");
+            HttpClient anonymizerHttpClient = httpClientFactory.CreateClient("PresidioAnonymizer");
+            ILogger<PresidioService> logger = serviceProvider.GetRequiredService<ILogger<PresidioService>>();
+
+            PresidioService presidioService = new PresidioService(analyzerHttpClient, anonymizerHttpClient, logger);
+            return presidioService;
+        });
+
+        builder.Services.AddSingleton<TextInferenceRepository>();
+        builder.Services.AddSingleton<PresidioService>();
+        builder.Services.AddSingleton<IdentityResolvingService>();
+        builder.Services.AddSingleton<ZeroShotAspectNliOnnx>();
+        builder.Services.AddSingleton<SentimentOnnx3>();
+        builder.Services.AddSingleton<EmotionOnnxMulti>();
+        builder.Services.AddSingleton<UrgencyOnnx3>();
+        builder.Services.AddSingleton<TextAnalyzer>();
+        builder.Services.AddSingleton<TextInferenceService>();
+        builder.Services.AddHostedService<Worker>();
+
+        IHost host = builder.Build();
+        try
+        {
+            Log.Information("Starting application...");
+            host.Run();
+        }
+        catch (Exception ex)
+        {
+            Log.Fatal(ex, "The application terminated unexpectedly.");
+            throw;
+        }
+        finally
+        {
+            Log.Information("Application is shutting down...");
+            Log.CloseAndFlush();
+        }
+    }
 }

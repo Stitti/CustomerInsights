@@ -1,4 +1,3 @@
-using CustomerInsights.ApiService.Database;
 using CustomerInsights.ApiService.Database.Repositories;
 using CustomerInsights.ApiService.Repositories;
 using CustomerInsights.ApiService.Services;
@@ -7,8 +6,6 @@ using CustomerInsights.Database;
 using CustomerInsights.ServiceDefaults;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
-using Newtonsoft.Json;
-using Npgsql;
 using Serilog;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
@@ -21,6 +18,7 @@ if (string.IsNullOrWhiteSpace(connectionString))
     throw new Exception("Database connection string is missing on configuration");
 
 builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connectionString));
+builder.Services.AddRabbitMqSender(builder.Configuration, "messaging");
 
 // Repositories
 builder.Services.AddScoped<InteractionRepository>();

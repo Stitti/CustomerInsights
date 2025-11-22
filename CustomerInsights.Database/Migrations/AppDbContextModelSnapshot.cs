@@ -73,48 +73,6 @@ namespace CustomerInsights.Database.Migrations
                     b.ToTable("accounts", (string)null);
                 });
 
-            modelBuilder.Entity("CustomerInsights.Base.Models.OutboxMessage", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<DateTime>("CreatedUtc")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_utc");
-
-                    b.Property<string>("ErrorMessage")
-                        .HasColumnType("text")
-                        .HasColumnName("error_message");
-
-                    b.Property<DateTime?>("ProcessedUtc")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("processed_utc");
-
-                    b.Property<int>("RetryCount")
-                        .HasColumnType("integer")
-                        .HasColumnName("retry_count");
-
-                    b.Property<Guid>("TargetId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("target_id");
-
-                    b.Property<Guid>("TenantId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("tenant_id");
-
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("character varying(128)")
-                        .HasColumnName("type");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("outbox_messages", (string)null);
-                });
-
             modelBuilder.Entity("CustomerInsights.Base.Models.SatisfactionState", b =>
                 {
                     b.Property<Guid>("TenantId")
@@ -153,6 +111,56 @@ namespace CustomerInsights.Database.Migrations
                         .IsUnique();
 
                     b.ToTable("satisfaction_state", (string)null);
+                });
+
+            modelBuilder.Entity("CustomerInsights.Models.ApiKey", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)")
+                        .HasColumnName("description");
+
+                    b.Property<TimeSpan>("Duration")
+                        .HasColumnType("interval")
+                        .HasColumnName("duration");
+
+                    b.Property<string>("LastChars")
+                        .IsRequired()
+                        .HasMaxLength(4)
+                        .HasColumnType("character varying(4)")
+                        .HasColumnName("last_chars");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("name");
+
+                    b.Property<bool>("Revoked")
+                        .HasColumnType("boolean")
+                        .HasColumnName("revoked");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("tenant_id");
+
+                    b.Property<DateTime>("TokenCreated")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("token_created");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("api_keys", (string)null);
                 });
 
             modelBuilder.Entity("CustomerInsights.Models.Contact", b =>
@@ -278,6 +286,40 @@ namespace CustomerInsights.Database.Migrations
                     b.ToTable("interactions", (string)null);
                 });
 
+            modelBuilder.Entity("CustomerInsights.Models.Models.EmailTemplate", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasMaxLength(2048)
+                        .HasColumnType("character varying(2048)")
+                        .HasColumnName("content");
+
+                    b.Property<bool>("IsHtml")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_html");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("key");
+
+                    b.Property<string>("LanguageCode")
+                        .IsRequired()
+                        .HasMaxLength(2)
+                        .HasColumnType("character varying(2)")
+                        .HasColumnName("language_code");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("email_templates", (string)null);
+                });
+
             modelBuilder.Entity("CustomerInsights.Models.TextInference", b =>
                 {
                     b.Property<Guid>("InteractionId")
@@ -341,6 +383,11 @@ namespace CustomerInsights.Database.Migrations
                         .HasMaxLength(128)
                         .HasColumnType("character varying(128)")
                         .HasColumnName("dedupe_key");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(4096)
+                        .HasColumnType("character varying(4096)")
+                        .HasColumnName("description");
 
                     b.Property<string>("Severity")
                         .IsRequired()
@@ -525,8 +572,7 @@ namespace CustomerInsights.Database.Migrations
 
             modelBuilder.Entity("CustomerInsights.Models.Interaction", b =>
                 {
-                    b.Navigation("TextInference")
-                        .IsRequired();
+                    b.Navigation("TextInference");
                 });
 #pragma warning restore 612, 618
         }

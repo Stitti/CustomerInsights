@@ -2,7 +2,7 @@ using CustomerInsights.ApiService.Models;
 
 namespace CustomerInsights.Models;
 
-public class Contact
+public sealed class Contact
 {
     public Guid Id { get; set; }
     public string ExternalId { get; set; } = string.Empty;

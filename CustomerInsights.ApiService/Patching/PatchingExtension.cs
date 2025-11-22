@@ -134,5 +134,14 @@ namespace CustomerInsights.ApiService.Patching
                 }
             }
         }
+
+        public static void ApplyPatch(this ApiKey apiKey, UpdateApiKeyRequest patch)
+        {
+            if (patch.Name.IsSpecified)
+                apiKey.Name = patch.Name.Value;
+
+            if (patch.Description.IsSpecified)
+                apiKey.Description = patch.Description.Value;
+        }
     }
 }

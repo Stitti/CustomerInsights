@@ -1,14 +1,14 @@
 import React from 'react';
 import { Flex, Box } from '@radix-ui/themes';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
-import Sidebar, { SidebarItem } from '../Sidebar.tsx';
+import Sidebar, { SidebarItem } from '../Sidebar';
 import {
     UserIcon,
     BuildingIcon,
     GlobeLockIcon,
     MessageCircleQuestionMarkIcon, ServerIcon,
 } from 'lucide-react';
-import Header from "../headers/Header.tsx";
+import Header from "../headers/Header";
 
 const items: SidebarItem[] = [
     { key: 'users',    label: 'Users',    icon: <UserIcon /> },

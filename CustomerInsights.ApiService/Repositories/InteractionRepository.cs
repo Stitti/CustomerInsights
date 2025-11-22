@@ -19,7 +19,7 @@ public sealed class InteractionRepository
         _logger = logger;
     }
 
-    public async Task<InteractionDto?> GetInteractionByIdAsync(Guid id, CancellationToken ct = default)
+    public async Task<InteractionDto?> GetInteractionByIdAsync(Guid id, CancellationToken ct)
     {
         if (id == Guid.Empty)
             return null;
@@ -61,7 +61,7 @@ public sealed class InteractionRepository
         return entity;
     }
 
-    public async Task<IEnumerable<InteractionListDto>> GetAllInteractionsAsync(CancellationToken ct = default)
+    public async Task<IEnumerable<InteractionListDto>> GetAllInteractionsAsync(CancellationToken ct)
     {
         List<InteractionListDto> list = await _db.Interactions
             .AsNoTracking()
@@ -96,7 +96,7 @@ public sealed class InteractionRepository
         return list;
     }
 
-    public async Task<Guid> InsertAsync(Interaction interaction, CancellationToken ct = default)
+    public async Task<Guid> InsertAsync(Interaction interaction, CancellationToken ct)
     {
         if (interaction.Id == Guid.Empty)
             interaction.Id = Guid.NewGuid();
@@ -111,10 +111,7 @@ public sealed class InteractionRepository
         return interaction.Id;
     }
 
-    /// <summary>
-    /// Fügt mehrere Interactions in einem Save ein und gibt deren Ids zurück.
-    /// </summary>
-    public async Task<Guid[]> InsertBatchAsync(IEnumerable<Interaction> interactions, CancellationToken ct = default)
+    public async Task<Guid[]> InsertBatchAsync(IEnumerable<Interaction> interactions, CancellationToken ct)
     {
         List<Interaction> list = interactions?.ToList() ?? new List<Interaction>();
 
@@ -135,10 +132,7 @@ public sealed class InteractionRepository
         return ids;
     }
 
-    /// <summary>
-    /// Aggregiert Top-Kanäle innerhalb eines Zeitfensters basierend auf TimeInterval.
-    /// </summary>
-    public async Task<IReadOnlyList<ChannelCount>> GetTopChannelsAsync(TimeInterval interval, CancellationToken ct = default)
+    public async Task<IReadOnlyList<ChannelCount>> GetTopChannelsAsync(TimeInterval interval, CancellationToken ct)
     {
         DateTimeOffset now = DateTimeOffset.UtcNow;
         (DateTimeOffset from, DateTimeOffset to) = GetIntervalRange(interval, now);
@@ -161,10 +155,51 @@ public sealed class InteractionRepository
         return result;
     }
 
-    /// <summary>
-    /// Berechnet den Start- und Endzeitpunkt für das gewählte Intervall.
-    /// Identische Logik wie in MetricsRepository.
-    /// </summary>
+    public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken)
+    {
+        int affectedRows = await _db.Interactions
+            .Where(x => x.Id == id)
+            .ExecuteDeleteAsync(cancellationToken);
+
+        return affectedRows > 0;
+    }
+
+    public async Task<bool> PatchAsync(Guid id, UpdateInteractionRequest request, CancellationToken cancellationToken)
+    {
+        Interaction? interaction = await _db.Interactions.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+        if (interaction == null)
+            return false;
+
+        interaction.ApplyPatch(request);
+
+        try
+        {
+            await _db.SaveChangesAsync(cancellationToken);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            return false;
+        }
+    }
+
+
+    private DateTimeOffset StartOfWeek(DateTimeOffset date)
+    {
+        int diff = (7 + (date.DayOfWeek - DayOfWeek.Monday)) % 7;
+        return date.AddDays(-1 * diff).Date;
+    }
+
+    private DateTimeOffset StartOfMonth(DateTimeOffset date)
+    {
+        return new DateTimeOffset(date.Year, date.Month, 1, 0, 0, 0, date.Offset);
+    }
+
+    private DateTimeOffset StartOfYear(DateTimeOffset date)
+    {
+        return new DateTimeOffset(date.Year, 1, 1, 0, 0, 0, date.Offset);
+    }
+
     private (DateTimeOffset Start, DateTimeOffset End) GetIntervalRange(TimeInterval interval, DateTimeOffset now)
     {
         return interval switch
@@ -177,58 +212,5 @@ public sealed class InteractionRepository
             TimeInterval.LastYear => (StartOfYear(now.AddYears(-1)), StartOfYear(now)),
             _ => throw new ArgumentException($"Ungültiges Intervall: {interval}")
         };
-    }
-
-    /// <summary>
-    /// Gibt den Start der Woche (Montag) zurück.
-    /// </summary>
-    private DateTimeOffset StartOfWeek(DateTimeOffset date)
-    {
-        int diff = (7 + (date.DayOfWeek - DayOfWeek.Monday)) % 7;
-        return date.AddDays(-1 * diff).Date;
-    }
-
-    /// <summary>
-    /// Gibt den Start des Monats zurück.
-    /// </summary>
-    private DateTimeOffset StartOfMonth(DateTimeOffset date)
-    {
-        return new DateTimeOffset(date.Year, date.Month, 1, 0, 0, 0, date.Offset);
-    }
-
-    /// <summary>
-    /// Gibt den Start des Jahres zurück.
-    /// </summary>
-    private DateTimeOffset StartOfYear(DateTimeOffset date)
-    {
-        return new DateTimeOffset(date.Year, 1, 1, 0, 0, 0, date.Offset);
-    }
-
-    public async Task<bool> DeleteAsync(Guid id)
-    {
-        int affectedRows = await _db.Interactions
-            .Where(x => x.Id == id)
-            .ExecuteDeleteAsync();
-
-        return affectedRows > 0;
-    }
-
-    internal async Task<bool> PatchAsync(Guid id, UpdateInteractionRequest request)
-    {
-        Interaction? interaction = await _db.Interactions.FirstOrDefaultAsync(x => x.Id == id);
-        if (interaction == null)
-            return false;
-
-        interaction.ApplyPatch(request);
-
-        try
-        {
-            await _db.SaveChangesAsync();
-            return true;
-        }
-        catch (Exception ex)
-        {
-            return false;
-        }
     }
 }

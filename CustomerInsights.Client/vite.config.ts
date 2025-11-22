@@ -7,7 +7,6 @@ if (!api) {
   throw new Error(`VITE_EVENT_MANAGER_API is missing.`);
 }
 
-// https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), ],
   resolve: {

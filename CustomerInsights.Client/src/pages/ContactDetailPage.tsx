@@ -103,7 +103,6 @@ export function ContactDetailPage() {
         try {
             await withLoader("Kontakt wird gelöscht...", async () => {
                 await deleteContactById(contactId!);
-                navigate(-1);
             });
 
             showToast({

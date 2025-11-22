@@ -92,43 +92,13 @@ public sealed class InteractionController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to ingest interaction");
+            _logger.LogError(ex, "Failed to ingest interaction for tenant {TenantId}", tenantId);
             return StatusCode(StatusCodes.Status500InternalServerError, new ProblemDetails
             {
                 Title = "Ingestion Failed",
                 Detail = "An error occurred while processing the interaction",
                 Status = StatusCodes.Status500InternalServerError
             });
-        }
-    }
-
-    [HttpPost("batch")]
-    public async Task<IActionResult> IngestBatch([FromBody] IngestInteractionRequest[] requests)
-    {
-        Guid tenantId = Guid.Empty;
-
-        if (requests == null || requests.Length == 0)
-        {
-            return BadRequest("Batch must contain at least one interaction");
-        }
-
-        if (requests.Length > 1000)
-        {
-            return BadRequest("Batch size exceeds maximum of 1000 interactions");
-        }
-
-        try
-        {
-            _logger.LogInformation("Ingesting batch of {Count} interactions for tenant {TenantId}", requests.Length, tenantId);
-
-            BatchIngestResponse response = await _interactionService.IngestBatchAsync(tenantId, requests);
-
-            return Accepted(response);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to ingest batch");
-            return StatusCode(500, "Batch ingestion failed");
         }
     }
 
@@ -166,7 +136,7 @@ public sealed class InteractionController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to patch interaction {InteractionId}", id);
+            _logger.LogError(ex, "Failed to patch interaction {InteractionId} for tenant {TenantId}", id, tenantId);
             return StatusCode(StatusCodes.Status500InternalServerError, new ProblemDetails
             {
                 Title = "Patching Failed",
@@ -193,7 +163,7 @@ public sealed class InteractionController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to delete interaction {InteractionId}", id);
+            _logger.LogError(ex, "Failed to delete interaction {InteractionId} for tenant {TenantId}", id, tenantId);
             return StatusCode(StatusCodes.Status500InternalServerError, new ProblemDetails
             {
                 Title = "Deletion Failed",

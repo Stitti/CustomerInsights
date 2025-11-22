@@ -1,6 +1,6 @@
 ﻿namespace CustomerInsights.Models
 {
-    public class AspectRating
+    public sealed class AspectRating
     {
         public string AspectName { get; set; } = string.Empty;
         public double Score { get; set; }

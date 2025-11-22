@@ -1,6 +1,6 @@
 ﻿namespace CustomerInsights.Models.Models
 {
-    public class Tenant
+    public sealed class Tenant
     {
         public Guid Id { get; set; }
     }

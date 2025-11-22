@@ -5,7 +5,7 @@ using Serilog.Context;
 
 namespace CustomerInsights.ServiceDefaults.Middlewares
 {
-    public class RequestLoggingMiddleware
+    public sealed class RequestLoggingMiddleware
     {
         private readonly RequestDelegate _next;
         private readonly ILogger<RequestLoggingMiddleware> _logger;

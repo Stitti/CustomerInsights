@@ -4,7 +4,7 @@ using CustomerInsights.Models;
 
 namespace CustomerInsights.ApiService.Models.DTOs
 {
-    public class AccountDto
+    public sealed class AccountDto
     {
         public Guid Id { get; set; }
         public string Name { get; set; } = string.Empty;

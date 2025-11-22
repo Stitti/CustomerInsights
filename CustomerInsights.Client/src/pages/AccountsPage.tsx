@@ -18,6 +18,7 @@ import { MetricsTrends } from "../components/MetricsTrends";
 import { getAllAccounts } from "../services/accountService";
 import type {AccountListResponse} from "../models/responses/accountResponse";
 import {formatDateNumeric} from "../utils/dateUtils";
+import CsvImportDialog from "../components/CsvImportDialog";
 
 export default function AccountsPage() {
     const navigate = useNavigate();
@@ -58,13 +59,17 @@ export default function AccountsPage() {
                 <MetricsTrends />
                 <Flex justify="between" align="center" mb="5">
                     <Heading size="5">Accounts</Heading>
-                    <Button
+                    <Flex gap="2">
+                        <Button
                         size="2"
                         onClick={() => navigate(NIL_UUID)}
                         style={{ cursor: "pointer" }}
-                    >
-                        + Add Account
-                    </Button>
+                        >
+                            + Add Account
+                        </Button>
+                        <CsvImportDialog/>
+                    </Flex>
+
                 </Flex>
                 <Card variant="surface" style={{ marginTop: 16 }}>
                     {/* Filter / Suche */}

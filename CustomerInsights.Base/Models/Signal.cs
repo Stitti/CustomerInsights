@@ -14,6 +14,7 @@ namespace CustomerInsights.SignalWorker.Models
         public DateTime CreatedUtc { get; set; } = DateTime.UtcNow;
         public int TtlDays { get; set; } = 7;
         public string DedupeKey { get; set; } = string.Empty;
+        public string? Description { get; set; }
 
         // Payload
         public double AccountSatisfactionIndex { get; set; }

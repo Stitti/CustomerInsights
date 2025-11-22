@@ -1,5 +1,4 @@
-﻿// KeyVaultService.cs
-using Azure;
+﻿using Azure;
 using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
 using Microsoft.Extensions.Caching.Memory;
@@ -7,7 +6,7 @@ using Microsoft.Extensions.Logging;
 
 namespace CustomerInsights.ServiceDefaults.Services;
 
-public class KeyVaultService
+public sealed class KeyVaultService
 {
     private readonly SecretClient _client;
     private readonly IMemoryCache _cache;

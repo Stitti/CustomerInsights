@@ -2,7 +2,7 @@
 
 namespace CustomerInsights.ApiService.Models.DTOs
 {
-    public class TextInferenceListDto
+    public sealed class TextInferenceListDto
     {
         public Guid Id { get; set; }
         public string Sentiment { get; set; } = "neu";

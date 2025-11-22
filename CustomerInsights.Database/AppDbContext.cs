@@ -1,6 +1,7 @@
 ﻿using CustomerInsights.ApiService.Models;
 using CustomerInsights.Base.Models;
 using CustomerInsights.Models;
+using CustomerInsights.Models.Models;
 using CustomerInsights.SignalWorker.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -9,15 +10,16 @@ using System.Reflection.Emit;
 
 namespace CustomerInsights.Database;
 
-public class AppDbContext : DbContext
+public sealed class AppDbContext : DbContext
 {
     public DbSet<Account> Accounts => Set<Account>();
     public DbSet<Contact> Contacts => Set<Contact>();
     public DbSet<Interaction> Interactions => Set<Interaction>();
     public DbSet<SatisfactionState> SatisfactionStates => Set<SatisfactionState>();
     public DbSet<TextInference> TextInferences => Set<TextInference>();
-    public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
     public DbSet<Signal> Signals => Set<Signal>();
+    public DbSet<ApiKey> ApiKeys => Set<ApiKey>();
+    public DbSet<EmailTemplate> EmailTemplates => Set<EmailTemplate>();
 
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
@@ -196,22 +198,6 @@ public class AppDbContext : DbContext
             });
         });
 
-        // -------------------- OutboxMessage --------------------
-        b.Entity<OutboxMessage>(cfg =>
-        {
-            cfg.ToTable("outbox_messages");
-            cfg.HasKey(x => x.Id);
-
-            cfg.Property(x => x.Id).HasColumnName("id");
-            cfg.Property(x => x.TenantId).HasColumnName("tenant_id");
-            cfg.Property(x => x.TargetId).HasColumnName("target_id");
-            cfg.Property(x => x.Type).HasColumnName("type").HasMaxLength(128);
-            cfg.Property(x => x.CreatedUtc).HasColumnName("created_utc");
-            cfg.Property(x => x.ProcessedUtc).HasColumnName("processed_utc");
-            cfg.Property(x => x.RetryCount).HasColumnName("retry_count");
-            cfg.Property(x => x.ErrorMessage).HasColumnName("error_message");
-        });
-
         // -------------------- Signal --------------------
         b.Entity<Signal>(cfg =>
         {
@@ -235,12 +221,40 @@ public class AppDbContext : DbContext
             cfg.Property(s => s.CreatedUtc).HasColumnName("created_utc");
             cfg.Property(s => s.TtlDays).HasColumnName("ttl_days");
             cfg.Property(s => s.DedupeKey).HasColumnName("dedupe_key").HasMaxLength(128);
+            cfg.Property(s => s.Description).HasColumnName("description").HasMaxLength(4096);
 
             cfg.Property(s => s.AccountSatisfactionIndex).HasColumnName("account_satisfaction_index");
             cfg.Property(s => s.Threshold).HasColumnName("threshold");
 
             cfg.HasIndex(s => s.DedupeKey).IsUnique();
             cfg.HasIndex(s => new { s.TenantId, s.AccountId });
+        });
+
+        // -------------------- API Keys --------------------
+        b.Entity<ApiKey>(cfg =>
+        {
+            cfg.ToTable("api_keys");
+            cfg.HasKey(k => k.Id);
+            cfg.Property(k => k.Id).HasColumnName("id");
+            cfg.Property(k => k.TenantId).HasColumnName("tenant_id");
+            cfg.Property(k => k.Name).HasColumnName("name").HasMaxLength(64).IsRequired();
+            cfg.Property(k => k.Description).HasColumnName("description").HasMaxLength(512);
+            cfg.Property(k => k.LastChars).HasColumnName("last_chars").HasMaxLength(4).IsRequired();
+            cfg.Property(k => k.TokenCreated).HasColumnName("token_created");
+            cfg.Property(k => k.Duration).HasColumnName("duration");
+            cfg.Property(k => k.Revoked).HasColumnName("revoked");
+        });
+
+        // -------------------- Email Template --------------------
+        b.Entity<EmailTemplate>(cfg =>
+        {
+            cfg.ToTable("email_templates");
+            cfg.HasKey(k => k.Id);
+            cfg.Property(k => k.Id).HasColumnName("id");
+            cfg.Property(k => k.Key).HasColumnName("key").HasMaxLength(16).IsRequired();
+            cfg.Property(k => k.Content).HasColumnName("content").HasMaxLength(2048).IsRequired();
+            cfg.Property(k => k.LanguageCode).HasColumnName("language_code").HasMaxLength(2).IsRequired();
+            cfg.Property(k => k.IsHtml).HasColumnName("is_html").IsRequired();
         });
     }
 }

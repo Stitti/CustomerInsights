@@ -13,7 +13,9 @@
   <ItemGroup>
     <ProjectReference Include="..\CustomerInsights.ApiService\CustomerInsights.ApiService.csproj" />
     <ProjectReference Include="..\CustomerInsights.DocumentService\CustomerInsights.DocumentService.csproj" />
+    <ProjectReference Include="..\CustomerInsights.EmailService\CustomerInsights.EmailService.csproj" />
     <ProjectReference Include="..\CustomerInsights.NlpService\CustomerInsights.NlpService.csproj" />
+    <ProjectReference Include="..\CustomerInsights.SatisfactionIndexService\CustomerInsights.SatisfactionIndexService.csproj" />
     <ProjectReference Include="..\CustomerInsights.SignalWorker\CustomerInsights.SignalWorker.csproj" />
     <ProjectReference Include="..\CustomerInsights.Worker\CustomerInsights.InferenceWorker.csproj" />
   </ItemGroup>
@@ -24,6 +26,7 @@
     <PackageReference Include="Aspire.Hosting.Redis" Version="13.0.0" />
     <PackageReference Include="CommunityToolkit.Aspire.Hosting.NodeJS.Extensions" Version="9.9.0" />
     <PackageReference Include="CommunityToolkit.Aspire.Hosting.PostgreSQL.Extensions" Version="9.9.0" />
+    <PackageReference Include="CommunityToolkit.Aspire.Hosting.Redis.Extensions" Version="9.9.0" />
   </ItemGroup>
 
 </Project>

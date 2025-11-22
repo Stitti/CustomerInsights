@@ -8,7 +8,7 @@ namespace CustomerInsights.Base.Models.Responses
         public ScoreResult[] Emotions { get; set; } = Array.Empty<ScoreResult>();
     }
 
-    public class ScoreResult
+    public sealed class ScoreResult
     {
         public string Label { get; set; } = string.Empty;
         public float Score { get; set; }

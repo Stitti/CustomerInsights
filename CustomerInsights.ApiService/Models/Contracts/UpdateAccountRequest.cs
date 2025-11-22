@@ -3,7 +3,7 @@ using CustomerInsights.ApiService.Patching;
 
 namespace CustomerInsights.ApiService.Models.Contracts
 {
-    public class UpdateAccountRequest
+    public sealed class UpdateAccountRequest
     {
         public PatchField<string?> Name { get; set; }
         public PatchField<string?> ExternalId { get; set; }

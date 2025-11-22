@@ -34,7 +34,7 @@ public sealed class AccountController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to fetch accounts");
+            _logger.LogError(ex, "Failed to fetch accounts for tenant {TenantId}", tenantId);
             return StatusCode(StatusCodes.Status500InternalServerError, new ProblemDetails
             {
                 Title = "Fetch Failed",
@@ -56,7 +56,7 @@ public sealed class AccountController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to fetch account");
+            _logger.LogError(ex, "Failed to fetch account for tenant {TenantId}", tenantId);
             return StatusCode(StatusCodes.Status500InternalServerError, new ProblemDetails
             {
                 Title = "Fetch Failed",
@@ -93,7 +93,7 @@ public sealed class AccountController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to create account");
+            _logger.LogError(ex, "Failed to create account for tenant {TenantId}", tenantId);
             return StatusCode(StatusCodes.Status500InternalServerError, new ProblemDetails
             {
                 Title = "Creation Failed",
@@ -129,7 +129,7 @@ public sealed class AccountController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to patch account {AccountId}", id);
+            _logger.LogError(ex, "Failed to patch account {AccountId} for tenant {TenantId}", id, tenantId);
             return StatusCode(StatusCodes.Status500InternalServerError, new ProblemDetails
             {
                 Title = "Patching Failed",
@@ -155,7 +155,7 @@ public sealed class AccountController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to delete account {AccountId}", id);
+            _logger.LogError(ex, "Failed to delete account {AccountId} for tenant {TenantId}", id, tenantId);
             return StatusCode(StatusCodes.Status500InternalServerError, new ProblemDetails
             {
                 Title = "Deletion Failed",

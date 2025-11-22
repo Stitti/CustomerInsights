@@ -2,7 +2,7 @@
 
 namespace CustomerInsights.ApiService.Models.Contracts
 {
-    public class CreateAccountRequest
+    public sealed class CreateAccountRequest
     {
         public string Name { get; set; }
         public string? ExternalId { get; set; }

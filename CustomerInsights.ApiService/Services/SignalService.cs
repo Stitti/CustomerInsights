@@ -1,4 +1,5 @@
-﻿using CustomerInsights.ApiService.Models.DTOs;
+﻿using CustomerInsights.ApiService.Models.Contracts;
+using CustomerInsights.ApiService.Models.DTOs;
 using CustomerInsights.ApiService.Repositories;
 
 namespace CustomerInsights.ApiService.Services
@@ -14,14 +15,19 @@ namespace CustomerInsights.ApiService.Services
             _logger = logger;
         }
 
-        public async Task<IEnumerable<SignalDto>> GetAll(CancellationToken ct = default)
+        public async Task<IEnumerable<SignalDto>> GetAll(CancellationToken cancellation = default)
         {
-            return await _repository.GetAllAsync();
+            return await _repository.GetAllAsync(cancellation);
         }
 
-        public async Task<SignalDto?> GetById(Guid id, CancellationToken ct = default)
+        public async Task<SignalDto?> GetById(Guid id, CancellationToken cancellation = default)
         {
-            return await _repository.GetById(id);
+            return await _repository.GetById(id, cancellation);
+        }
+
+        internal async Task<bool> PatchAsync(Guid id, UpdateSignalRequest request,  CancellationToken cancellation = default)
+        {
+            return await _repository.PatchAsync(id, request, cancellation);
         }
     }
 }

@@ -2,9 +2,13 @@ IDistributedApplicationBuilder builder = DistributedApplication.CreateBuilder(ar
 
 IResourceBuilder<RedisResource> cache = builder.AddRedis("customer-insights-cache")
                                                .WithRedisInsight()
-                                               .WithRedisCommander();
+                                               .WithRedisCommander()
+                                               .WithDbGate();
 
-IResourceBuilder<RabbitMQServerResource> rabbitmq = builder.AddRabbitMQ("messaging");
+IResourceBuilder<ParameterResource> rabbitUser = builder.AddParameter("username", "guest");
+IResourceBuilder<ParameterResource> rabbitPassword = builder.AddParameter("password", "guest", true);
+IResourceBuilder<RabbitMQServerResource> rabbitmq = builder.AddRabbitMQ("messaging", rabbitUser, rabbitPassword)
+                                                           .WithManagementPlugin();
 
 IResourceBuilder<ContainerResource> presidioAnalyzer = builder.AddContainer("presidio-analyzer", "mcr.microsoft.com/presidio-analyzer", "latest")
                                                               .WithHttpEndpoint(port: 5001, targetPort: 3000);
@@ -13,63 +17,50 @@ IResourceBuilder<ContainerResource> presidioAnonymizer = builder.AddContainer("p
                                                                 .WithHttpEndpoint(port: 5002, targetPort: 3000);
 
 IResourceBuilder<PostgresServerResource> postgres = builder.AddPostgres("customer-insights-postgres")
-                                                           //.WithDataVolume()
                                                            .WithPgAdmin()
                                                            .WithDbGate();
 
-IResourceBuilder<PostgresDatabaseResource> customerVoiceDb = postgres.AddDatabase("customer-insights-db");
+IResourceBuilder<PostgresDatabaseResource> customerInsightsDb = postgres.AddDatabase("customer-insights-db");
 
-IResourceBuilder<ProjectResource> customerVoiceNlpService = builder.AddProject<Projects.CustomerInsights_NlpService>("customer-insights-nlp-service");
+IResourceBuilder<ProjectResource> customerInsightsDocumentService = builder.AddProject<Projects.CustomerInsights_DocumentService>("customerinsights-document-service");
 
-/*
-IResourceBuilder<ProjectResource> inferenceWorker = builder.AddProject<Projects.CustomerInsights_InferenceWorker>("customer-insights-inference-worker")
-                                                           .WaitFor(customerVoiceDb)
-                                                           .WaitFor(customerVoiceNlpService)
-                                                           .WaitFor(cache)
-                                                           .WithReference(customerVoiceDb)
-                                                           .WithReference(customerVoiceNlpService)
-                                                           .WithReference(cache);
-
-IResourceBuilder<ProjectResource> signalWorker = builder.AddProject<Projects.CustomerInsights_SignalWorker>("customer-insights-signal-worker")
-                                                        .WaitFor(customerVoiceDb)
-                                                        .WaitFor(cache)
-                                                        .WithReference(customerVoiceDb)
-                                                        .WithReference(cache);
-*/
-
-IResourceBuilder<ProjectResource> customerVoiceDocumentService = builder.AddProject<Projects.CustomerInsights_DocumentService>("customer-insights-document-service");
-
-IResourceBuilder<ProjectResource> customerVoiceApi = builder.AddProject<Projects.CustomerInsights_ApiService>("customer-insights-api-service")
-                                                            .WaitFor(customerVoiceDb)
-                                                            .WaitFor(customerVoiceNlpService)
+IResourceBuilder<ProjectResource> customerInsightsApi = builder.AddProject<Projects.CustomerInsights_ApiService>("customerinsights-apiservice")
+                                                            .WaitFor(customerInsightsDb)
                                                             .WaitFor(cache)
-                                                            .WithReference(customerVoiceDb)
-                                                            .WithReference(customerVoiceNlpService)
-                                                            .WithReference(cache);
-
-
-
-IResourceBuilder<ContainerResource> ollama = builder.AddContainer("ollama", "ollama/ollama", "latest")
-                                                    .WithHttpEndpoint(port: 11434, targetPort: 11434);
-
-//IResourceBuilder<ProjectResource> embeddingService = builder.AddProject<Projects.CustomerInsights_EmbeddingService>("customer-insights-embedding-service")
-//                                                            .WithEnvironment("EmbeddingService__OnnxModelPath", "Models/model.onnx");
-
-//IResourceBuilder<ProjectResource> ragService = builder.AddProject<Projects.CustomerInsights_RagService>("customer-insights-rag-service")
-//                                                      .WaitFor(customerVoiceDb)
-//                                                      .WaitFor(embeddingService)
-//                                                      .WaitFor(ollama)
-//                                                      .WithReference(customerVoiceDb)
-//                                                      .WithEnvironment("EmbeddingService__BaseUrl", embeddingService.GetEndpoint("http"))
-//                                                      .WithEnvironment("ChatService__BaseUrl", ollama.GetEndpoint("http"));
+                                                            .WaitFor(rabbitmq)
+                                                            .WithReference(customerInsightsDb)
+                                                            .WithReference(cache)
+                                                            .WithReference(rabbitmq);
 
 builder.AddViteApp("customer-insights-client", "../CustomerInsights.Client")
        .WithNpmPackageInstallation()
-       .WaitFor(customerVoiceApi)
-       .WaitFor(customerVoiceDocumentService)
-       .WithReference(customerVoiceApi)
-       .WithReference(customerVoiceDocumentService)
-       .WithEnvironment("VITE_CUSTOMER_VOICE_API", customerVoiceApi.GetEndpoint("http"))
-       .WithEnvironment("VITE_CUSTOMER_VOICE_DOCUMENT_API", customerVoiceDocumentService.GetEndpoint("http"));
+       .WaitFor(customerInsightsApi)
+       .WaitFor(customerInsightsDocumentService)
+       .WithReference(customerInsightsApi)
+       .WithReference(customerInsightsDocumentService)
+       .WithEnvironment("VITE_CUSTOMER_VOICE_API", customerInsightsApi.GetEndpoint("http"))
+       .WithEnvironment("VITE_CUSTOMER_VOICE_DOCUMENT_API", customerInsightsDocumentService.GetEndpoint("http"));
+
+//builder.AddProject<Projects.CustomerInsights_EmailService>("customerinsights-emailservice")
+//       .WaitFor(rabbitmq)
+//       .WaitFor(customerInsightsDb)
+//       .WithReference(rabbitmq)
+//       .WithReference(customerInsightsDb);
+
+builder.AddProject<Projects.CustomerInsights_NlpService>("customerinsights-nlpservice")
+       .WaitFor(rabbitmq)
+       .WaitFor(customerInsightsDb)
+       .WaitFor(presidioAnalyzer)
+       .WaitFor(presidioAnonymizer)
+       .WithReference(rabbitmq)
+       .WithReference(customerInsightsDb)
+       .WithEnvironment("Presidio__AnalyzerUrl", presidioAnalyzer.GetEndpoint("http"))
+       .WithEnvironment("Presidio__AnonymizerUrl", presidioAnonymizer.GetEndpoint("http"));
+
+builder.AddProject<Projects.CustomerInsights_SatisfactionIndexService>("customerinsights-satisfactionindexservice")
+       .WaitFor(rabbitmq)
+       .WaitFor(customerInsightsDb)
+       .WithReference(rabbitmq)
+       .WithReference(customerInsightsDb);
 
 builder.Build().Run();

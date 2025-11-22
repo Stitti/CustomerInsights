@@ -151,9 +151,6 @@ public sealed class MetricsRepository
         };
     }
 
-    /// <summary>
-    /// Berechnet den Start- und Endzeitpunkt für das gewählte Intervall.
-    /// </summary>
     private (DateTimeOffset Start, DateTimeOffset End) GetIntervalRange(TimeInterval interval, DateTimeOffset now)
     {
         return interval switch
@@ -168,9 +165,6 @@ public sealed class MetricsRepository
         };
     }
 
-    /// <summary>
-    /// Berechnet den Start- und Endzeitpunkt für das vorherige Intervall (für Trend-Vergleich).
-    /// </summary>
     private (DateTimeOffset Start, DateTimeOffset End) GetPreviousIntervalRange(TimeInterval interval, DateTimeOffset now)
     {
         return interval switch
@@ -185,10 +179,6 @@ public sealed class MetricsRepository
         };
     }
 
-    /// <summary>
-    /// Berechnet die prozentuale Veränderung zwischen zwei Werten.
-    /// Positiv = Anstieg, Negativ = Abfall.
-    /// </summary>
     private int CalculatePercentageChange(int previousValue, int currentValue)
     {
         if (previousValue == 0)
@@ -199,34 +189,22 @@ public sealed class MetricsRepository
         return Convert.ToInt32((currentValue - previousValue) / previousValue * 100);
     }
 
-    /// <summary>
-    /// Gibt den Start der Woche (Montag) zurück.
-    /// </summary>
     private DateTimeOffset StartOfWeek(DateTimeOffset date)
     {
         int diff = (7 + (date.DayOfWeek - DayOfWeek.Monday)) % 7;
         return date.AddDays(-1 * diff).Date;
     }
 
-    /// <summary>
-    /// Gibt den Start des Monats zurück.
-    /// </summary>
     private DateTimeOffset StartOfMonth(DateTimeOffset date)
     {
         return new DateTimeOffset(date.Year, date.Month, 1, 0, 0, 0, date.Offset);
     }
 
-    /// <summary>
-    /// Gibt den Start des Jahres zurück.
-    /// </summary>
     private DateTimeOffset StartOfYear(DateTimeOffset date)
     {
         return new DateTimeOffset(date.Year, 1, 1, 0, 0, 0, date.Offset);
     }
 
-    /// <summary>
-    /// Berechnet die Confidence für eine einzelne Inference.
-    /// </summary>
     private static double? CalculateInteractionConfidence(TextInference inference)
     {
         List<double> scores = new List<double>();
@@ -241,18 +219,5 @@ public sealed class MetricsRepository
             scores.Add(inference.Emotions.Average(e => e.Score));
 
         return scores.Any() ? scores.Average() : null;
-    }
-
-    private sealed class InteractionWithInference
-    {
-        public Interaction Interaction { get; set; } = null!;
-        public TextInference? Inference { get; set; }
-    }
-
-    private sealed class SatisfactionStateData
-    {
-        public double DecayedWeightedSum { get; set; }
-        public double DecayedWeightSum { get; set; }
-        public double SatisfactionIndex { get; set; }
     }
 }

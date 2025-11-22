@@ -1,6 +1,5 @@
 ﻿using CustomerInsights.Database;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 
 namespace CustomerInsights.SignalWorker.Repositories;
 

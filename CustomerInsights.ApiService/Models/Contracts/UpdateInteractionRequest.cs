@@ -2,7 +2,7 @@
 
 namespace CustomerInsights.ApiService.Models.Contracts
 {
-    public class UpdateInteractionRequest
+    public sealed class UpdateInteractionRequest
     {
         public string? Subject { get; set; }
         public PatchField<Guid?> ContactId { get; set; }
@@ -11,19 +11,19 @@ namespace CustomerInsights.ApiService.Models.Contracts
         public TextInferencePatch? TextInference { get; set; }
     }
 
-    public class TextInferencePatch
+    public sealed class TextInferencePatch
     {
         public EmotionPatch? Emotions { get; set; }
         public AspectPatch? Aspects { get; set; }
     }
 
-    public class EmotionPatch
+    public sealed class EmotionPatch
     {
         public string[] Add { get; set; } = Array.Empty<string>();
         public string[] Remove { get; set; } = Array.Empty<string>();
     }
 
-    public class AspectPatch
+    public sealed class AspectPatch
     {
         public string[] Add { get; set; } = Array.Empty<string>();
         public string[] Remove { get; set; } = Array.Empty<string>();

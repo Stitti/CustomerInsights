@@ -3,7 +3,7 @@ using System.Text.Json;
 
 namespace CustomerInsights.ApiService.Models.DTOs
 {
-    public class TextInferenceDto
+    public sealed class TextInferenceDto
     {
         public Guid Id { get; set; }
         public string Sentiment { get; set; } = "neu";

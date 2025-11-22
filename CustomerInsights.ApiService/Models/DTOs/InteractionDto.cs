@@ -4,7 +4,7 @@ using System.Text.Json;
 
 namespace CustomerInsights.ApiService.Models.DTOs
 {
-    public class InteractionDto
+    public sealed class InteractionDto
     {
         public Guid Id { get; set; }
         public string Source { get; set; } = string.Empty;

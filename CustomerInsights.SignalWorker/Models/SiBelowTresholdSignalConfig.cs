@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace CustomerInsights.SignalWorker.Models
 {
-    public class SiBelowTresholdSignalConfig
+    public sealed class SiBelowTresholdSignalConfig
     {
         public double ThresholdPoints { get; init; } = 50.0d;
         public double HighSeverityGap { get; init; } = 10.0d; // High, wenn SI <= Threshold - Gap

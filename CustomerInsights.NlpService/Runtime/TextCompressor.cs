@@ -1,8 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text.RegularExpressions;
-using Microsoft.ML.Tokenizers;
 
 namespace CustomerInsights.NlpService.Runtime;
 
@@ -22,8 +18,11 @@ public static class TextCompressor
     private static readonly Regex BlockQuote = new(@"^\s*>+\s?", RegexOptions.Multiline | RegexOptions.Compiled);
     private static readonly Regex TableChars = new(@"(\|)|(:?-+:?)", RegexOptions.Compiled);
 
-    public static string Compress(string text, Tokenizer tokenizer, int maxTokens, string mode = "generic")
+    public static string? Compress(string text)
     {
+        if (string.IsNullOrWhiteSpace(text))
+            return null;
+
         text = HtmlTag.Replace(text, " ");
         text = CodeBlock.Replace(text, " ");
         text = InlineCode.Replace(text, " ");
@@ -38,6 +37,6 @@ public static class TextCompressor
         text = Signature.Replace(text, " ");
         text = text.Replace("\r", " ").Replace("\n", " ");
         text = MultiSpace.Replace(text, " ").Trim();
-        return text;
+        return text.Trim();
     }
 }

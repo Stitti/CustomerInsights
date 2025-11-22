@@ -17,6 +17,7 @@ import { NIL as NIL_UUID } from "uuid";
 import { getAllContacts } from "../services/contactService";
 import type {ContactListResponse} from "../models/responses/contactResponse";
 import {formatDateNumeric} from "../utils/dateUtils";
+import CsvImportDialog from "../components/CsvImportDialog";
 
 export default function ContactsPage() {
     const navigate = useNavigate();
@@ -61,13 +62,16 @@ export default function ContactsPage() {
             <Box flexGrow="1" p="6">
                 <Flex justify="between" align="center" mb="5">
                     <Heading size="5">Contacts</Heading>
-                    <Button
-                        size="2"
-                        onClick={() => navigate(NIL_UUID)}
-                        style={{ cursor: "pointer" }}
-                    >
-                        + Add Contact
-                    </Button>
+                    <Flex gap="2">
+                        <Button
+                            size="2"
+                            onClick={() => navigate(NIL_UUID)}
+                            style={{ cursor: "pointer" }}
+                        >
+                            + Add Contact
+                        </Button>
+                        <CsvImportDialog/>
+                    </Flex>
                 </Flex>
 
                 <Card variant="surface" style={{ marginTop: 16 }}>

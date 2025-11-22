@@ -6,7 +6,7 @@ using CustomerInsights.SignalWorker.Models;
 
 namespace CustomerInsights.ApiService.Models;
 
-public class Account
+public sealed class Account
 {
     public Guid Id { get; set; }
     public string Name { get; set; } = string.Empty;

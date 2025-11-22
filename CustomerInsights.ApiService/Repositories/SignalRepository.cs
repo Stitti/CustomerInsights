@@ -1,4 +1,5 @@
-﻿using CustomerInsights.ApiService.Models.DTOs;
+﻿using CustomerInsights.ApiService.Models.Contracts;
+using CustomerInsights.ApiService.Models.DTOs;
 using CustomerInsights.Database;
 using CustomerInsights.Models;
 using CustomerInsights.SignalWorker.Models;
@@ -17,7 +18,7 @@ namespace CustomerInsights.ApiService.Repositories
             _logger = logger;
         }
 
-        public async Task<List<SignalDto>> GetAllAsync(CancellationToken ct = default)
+        public async Task<List<SignalDto>> GetAllAsync(CancellationToken ct)
         {
             List<SignalDto> signals = await _db.Signals
                 .AsNoTracking()
@@ -40,7 +41,7 @@ namespace CustomerInsights.ApiService.Repositories
             return signals;
         }
 
-        public async Task<SignalDto?> GetById(Guid id, CancellationToken ct = default)
+        public async Task<SignalDto?> GetById(Guid id, CancellationToken ct)
         {
             if (id == Guid.Empty)
                 return null;
@@ -66,6 +67,14 @@ namespace CustomerInsights.ApiService.Repositories
             _logger.LogDebug("Loaded signal {Id} (account: {Account})", signal?.Id, signal?.Account?.Name);
 
             return signal;
+        }
+
+        internal async Task<bool> PatchAsync(Guid id, UpdateSignalRequest request, CancellationToken ct)
+        {
+            int affectedRows = await _db.Signals.Where(s => s.Id == id)
+                                                .ExecuteUpdateAsync(s => s.SetProperty(s => s.Description, request.Description.Value), ct);
+
+            return affectedRows > 0;
         }
     }
 }

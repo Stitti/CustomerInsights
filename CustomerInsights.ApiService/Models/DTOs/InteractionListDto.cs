@@ -2,7 +2,7 @@
 
 namespace CustomerInsights.ApiService.Models.DTOs
 {
-    public class InteractionListDto
+    public sealed class InteractionListDto
     {
         public Guid Id { get; set; }
         public string Source { get; set; } = string.Empty;

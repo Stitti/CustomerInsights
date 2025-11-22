@@ -6,7 +6,7 @@ using Polly.Retry;
 
 HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);
 
-builder.Services.AddHttpClient<WebhookSender>()
+builder.Services..AddHttp<WebhookSender>()
     .SetHandlerLifetime(TimeSpan.FromMinutes(5));
 
 IEnumerable<TimeSpan> retryDelays = Backoff.DecorrelatedJitterBackoffV2(TimeSpan.FromSeconds(2), retryCount: 6);

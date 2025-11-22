@@ -90,16 +90,35 @@ export function AccountDetailPage() {
         loadAccount();
     }, [loadAccount]);
 
-    const displayName = account?.name ?? "";
     const displayClassification =
         CLASSIFICATION_LABEL[account?.classification ?? ""] ??
         String(account?.classification ?? "");
-    const displayIndustry = account?.industry ?? "";
-    const displayCountry = account?.country ?? "";
+
     const externalId = account?.externalId ?? "";
     const contacts = account?.contacts ?? [];
     const interactions: any[] = [];
-    const satisfactionIndex = account?.satisfactionState?.satisfactionIndex;
+
+    // --- Event-Handler für Feldänderungen ---
+    const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setAccount(prev => prev ? { ...prev, name: value } : prev);
+    };
+
+    const handleIndustryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setAccount(prev => prev ? { ...prev, industry: value } : prev);
+    };
+
+    const handleCountryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setAccount(prev => prev ? { ...prev, country: value } : prev);
+    };
+
+    // optional, falls Classification doch editierbar sein soll:
+    // const handleClassificationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    //     const value = e.target.value;
+    //     setAccount(prev => prev ? { ...prev, classification: value } : prev);
+    // };
 
     const onCopyExternalId = async () => {
         try {
@@ -147,9 +166,12 @@ export function AccountDetailPage() {
     const handleRefresh = async () => {
         await withLoader("Loading account...", async () => {
             await loadAccount();
-            navigate(-1);
         });
     };
+
+    const displayName = account?.name ?? "";
+    const displayIndustry = account?.industry ?? "";
+    const displayCountry = account?.country ?? "";
 
     return (
         <Box flexGrow="1" p="6">
@@ -185,15 +207,15 @@ export function AccountDetailPage() {
                                         ) : (
                                             <TextField.Root
                                                 style={{ width: "100%" }}
-                                                disabled
                                                 type="text"
                                                 value={displayName}
+                                                onChange={handleNameChange}
                                             />
                                         )}
                                     </DataList.Value>
                                 </DataList.Item>
 
-                                {/* Classification */}
+                                {/* Classification (read-only) */}
                                 <DataList.Item>
                                     <DataList.Label minWidth="88px">Classification</DataList.Label>
                                     <DataList.Value style={{ flex: 1 }}>
@@ -204,10 +226,17 @@ export function AccountDetailPage() {
                                         ) : (
                                             <TextField.Root
                                                 style={{ width: "100%" }}
-                                                disabled
                                                 type="text"
                                                 value={displayClassification}
+                                                disabled
                                             />
+                                            // Wenn editierbar gewünscht:
+                                            // <TextField.Root
+                                            //   style={{ width: "100%" }}
+                                            //   type="text"
+                                            //   value={account?.classification ?? ""}
+                                            //   onChange={handleClassificationChange}
+                                            // />
                                         )}
                                     </DataList.Value>
                                 </DataList.Item>
@@ -223,9 +252,9 @@ export function AccountDetailPage() {
                                         ) : (
                                             <TextField.Root
                                                 style={{ width: "100%" }}
-                                                disabled
                                                 type="text"
                                                 value={displayIndustry}
+                                                onChange={handleIndustryChange}
                                             />
                                         )}
                                     </DataList.Value>
@@ -242,9 +271,9 @@ export function AccountDetailPage() {
                                         ) : (
                                             <TextField.Root
                                                 style={{ width: "100%" }}
-                                                disabled
                                                 type="text"
                                                 value={displayCountry}
+                                                onChange={handleCountryChange}
                                             />
                                         )}
                                     </DataList.Value>

@@ -15,17 +15,17 @@ public sealed class ContactService
         _logger = logger;
     }
 
-    public async Task<IEnumerable<ContactListDto>> GetAllContactsAsync()
+    public async Task<IEnumerable<ContactListDto>> GetAllContactsAsync(CancellationToken cancellationToken = default)
     {
-        return await _repository.GetAllWithAccountAsync();
+        return await _repository.GetAllWithAccountAsync(cancellationToken);
     }
 
-    public async Task<ContactDto?> GetContactById(Guid id)
+    public async Task<ContactDto?> GetContactById(Guid id, CancellationToken cancellationToken = default)
     {
-        return await _repository.GetByIdWithAllAsync(id);
+        return await _repository.GetByIdWithAllAsync(id, cancellationToken);
     }
 
-    public async Task<Contact> CreateContactAsync(CreateContactRequest request)
+    public async Task<Contact> CreateContactAsync(CreateContactRequest request, CancellationToken cancellationToken = default)
     {
         Contact contact = new Contact
         {
@@ -36,16 +36,16 @@ public sealed class ContactService
             CreatedAt = DateTime.UtcNow,
         };
 
-        return await _repository.CreateAsync(contact, request.AccountId.GetValueOrDefault());
+        return await _repository.CreateAsync(contact, request.AccountId.GetValueOrDefault(), cancellationToken);
     }
 
-    public async Task<bool> PatchAsync(Guid id, UpdateContactRequest request)
+    public async Task<bool> PatchAsync(Guid id, UpdateContactRequest request, CancellationToken cancellationToken = default)
     {
-        return await _repository.Patch(id, request);
+        return await _repository.PatchAsync(id, request, cancellationToken);
     }
 
-    public async Task<bool> DeleteAsync(Guid id)
+    public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        return await _repository.Delete(id);
+        return await _repository.Delete(id, cancellationToken);
     }
 }

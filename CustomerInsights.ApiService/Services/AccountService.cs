@@ -17,17 +17,17 @@ namespace CustomerInsights.ApiService.Services
             _logger = logger;
         }
 
-        public async Task<IEnumerable<AccountListDto>> GetAllAccountsAsync()
+        public async Task<IEnumerable<AccountListDto>> GetAllAccountsAsync(CancellationToken cancellationToken = default)
         {
-            return await _repository.GetAllWithParentAsync();
+            return await _repository.GetAllWithParentAsync(cancellationToken);
         }
 
-        public async Task<AccountDto?> GetAccountById(Guid id)
+        public async Task<AccountDto?> GetAccountById(Guid id, CancellationToken cancellationToken = default)
         {
-            return await _repository.GetByIdWithDetailsAsync(id);
+            return await _repository.GetByIdWithDetailsAsync(id, cancellationToken);
         }
 
-        public async Task<Account> CreateAccountAsync(CreateAccountRequest request)
+        public async Task<Account> CreateAccountAsync(CreateAccountRequest request, CancellationToken cancellationToken = default)
         {
             Account account = new Account
             {
@@ -39,17 +39,17 @@ namespace CustomerInsights.ApiService.Services
                 CreatedAt = DateTime.UtcNow,
             };
 
-            return await _repository.CreateAsync(account);
+            return await _repository.CreateAsync(account, cancellationToken);
         }
 
-        public async Task<bool> PatchAsync(Guid id, UpdateAccountRequest request)
+        public async Task<bool> PatchAsync(Guid id, UpdateAccountRequest request, CancellationToken cancellationToken = default)
         {
-            return await _repository.Patch(id, request);
+            return await _repository.PatchAsync(id, request, cancellationToken);
         }
 
-        public async Task<bool> DeleteAsync(Guid id)
+        public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
         {
-            return await _repository.Delete(id);
+            return await _repository.DeleteAsync(id, cancellationToken);
         }
     }
 }

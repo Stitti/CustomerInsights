@@ -4,7 +4,7 @@ using System.Text.Json;
 
 namespace CustomerInsights.Models;
 
-public class Interaction
+public sealed class Interaction
 {
     public Guid Id { get; set; }
     public Guid TenantId { get; set; }

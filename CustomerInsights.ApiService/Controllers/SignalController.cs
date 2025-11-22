@@ -1,4 +1,5 @@
-﻿using CustomerInsights.ApiService.Models.DTOs;
+﻿using CustomerInsights.ApiService.Models.Contracts;
+using CustomerInsights.ApiService.Models.DTOs;
 using CustomerInsights.ApiService.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -30,7 +31,7 @@ public sealed class SignalController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to fetch signals");
+            _logger.LogError(ex, "Failed to fetch signals for tenant {TenantId}", tenantId);
             return StatusCode(StatusCodes.Status500InternalServerError, new ProblemDetails
             {
                 Title = "Fetch Failed",
@@ -52,7 +53,32 @@ public sealed class SignalController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to fetch signal");
+            _logger.LogError(ex, "Failed to fetch signal {SignalId} for tenant {TenantId}", id, tenantId);
+            return StatusCode(StatusCodes.Status500InternalServerError, new ProblemDetails
+            {
+                Title = "Fetch Failed",
+                Detail = "An error occurred while fetching the signal",
+                Status = StatusCodes.Status500InternalServerError
+            });
+        }
+    }
+
+    [HttpPatch("{id}")]
+    public async Task<IActionResult> Patch(Guid id, UpdateSignalRequest request)
+    {
+        Guid tenantId = Guid.Empty;
+        if (id  == Guid.Empty)
+            return BadRequest("Invalid signal id");
+
+        try
+        {
+            _logger.LogInformation("Patching signal {SignalId} for tenant {TenantId}", id, tenantId);
+            bool success = await _signalService.PatchAsync(id, request);
+            return success ? Accepted() : BadRequest();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to fetch signal {SignalId} for tenant {TenantId}", id, tenantId);
             return StatusCode(StatusCodes.Status500InternalServerError, new ProblemDetails
             {
                 Title = "Fetch Failed",

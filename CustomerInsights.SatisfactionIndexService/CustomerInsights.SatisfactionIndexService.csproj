@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>dotnet-CustomerInsights.SatisfactionIndexService-bd90832d-54bb-40ed-b33f-271c47fbe6e0</UserSecretsId>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+	  <SignAssembly>true</SignAssembly>
+	  <AssemblyOriginatorKeyFile>..\CustomerInsights.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.0" />
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.23.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CustomerInsights.Database\CustomerInsights.Database.csproj" />
+    <ProjectReference Include="..\CustomerInsights.ServiceDefaults\CustomerInsights.ServiceDefaults.csproj" />
+  </ItemGroup>
+</Project>

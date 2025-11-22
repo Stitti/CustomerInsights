@@ -4,6 +4,8 @@ using CustomerInsights.ApiService.Models.DTOs;
 using CustomerInsights.ApiService.Models.Enums;
 using CustomerInsights.ApiService.Utils;
 using CustomerInsights.Models;
+using CustomerInsights.NlpService.Contracts;
+using Newtonsoft.Json;
 
 
 namespace CustomerInsights.ApiService.Services
@@ -12,79 +14,59 @@ namespace CustomerInsights.ApiService.Services
     {
         private readonly InteractionRepository _repository;
         private readonly TextNormalizer _textNormalizer;
+        private readonly RabbitMqSenderService _rabbitMqSenderService;
         private readonly ILogger<InteractionService> _logger;
 
-        public InteractionService(InteractionRepository repository, TextNormalizer textNormalizer, ILogger<InteractionService> logger)
+        public InteractionService(InteractionRepository repository, TextNormalizer textNormalizer, RabbitMqSenderService rabbitMqSenderService, ILogger<InteractionService> logger)
         {
             _repository = repository;
             _textNormalizer = textNormalizer;
+            _rabbitMqSenderService = rabbitMqSenderService;
             _logger = logger;
         }
 
-        public async Task<InteractionDto?> GetInteractionByIdAsync(Guid id)
+        public async Task<InteractionDto?> GetInteractionByIdAsync(Guid id, CancellationToken cancellationToken = default)
         {
-            return await _repository.GetInteractionByIdAsync(id);
+            return await _repository.GetInteractionByIdAsync(id, cancellationToken);
         }
 
-        public async Task<IEnumerable<InteractionListDto>> GetAllInteractionsAsync()
+        public async Task<IEnumerable<InteractionListDto>> GetAllInteractionsAsync(CancellationToken cancellationToken = default)
         {
-            return await _repository.GetAllInteractionsAsync();
+            return await _repository.GetAllInteractionsAsync(cancellationToken);
         }
 
-        public async Task IngestAsync(Guid tenantId, IngestInteractionRequest request)
+        public async Task IngestAsync(Guid tenantId, IngestInteractionRequest request, CancellationToken cancellationToken = default)
         {
             Interaction interaction = MapToInteraction(tenantId, request);
             interaction.Text = _textNormalizer.Normalize(interaction.Text, interaction.Channel);
 
-            Guid interactionId = await _repository.InsertAsync(interaction);
+            Guid interactionId = await _repository.InsertAsync(interaction, cancellationToken);
 
+            NlpJobMessage message = new NlpJobMessage
+            {
+                Id = interactionId,
+                TenantId = tenantId,
+                Message = interaction.Text
+            };
 
+            string json = JsonConvert.SerializeObject(message);
+            await _rabbitMqSenderService.SendMessageAsync("nlp_jobs", json, cancellationToken);
             _logger.LogInformation("Interaction {InteractionId} queued for analysis", interactionId);
         }
 
-        public async Task<BatchIngestResponse> IngestBatchAsync(Guid tenantId, IngestInteractionRequest[] requests)
+        internal async Task<IReadOnlyList<ChannelCount>> GetTopChannelsAsync(TimeInterval period, CancellationToken cancellationToken = default)
         {
-            var response = new BatchIngestResponse
-            {
-                TotalSubmitted = requests.Length
-            };
+            return await _repository.GetTopChannelsAsync(period, cancellationToken);
+        }
 
-            var interactions = new List<Interaction>(requests.Length);
-            var errors = new List<string>();
+        public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
+        {
+            return await _repository.DeleteAsync(id, cancellationToken);
+        }
 
-            // 1. Map and normalize all interactions
-            for (int i = 0; i < requests.Length; i++)
-            {
-                try
-                {
-                    Interaction interaction = MapToInteraction(tenantId, requests[i]);
-                    interaction.Text = _textNormalizer.Normalize(interaction.Text, interaction.Channel);
-
-                    interactions.Add(interaction);
-                }
-                catch (Exception ex)
-                {
-                    errors.Add($"Item {i}: {ex.Message}");
-                    _logger.LogWarning(ex, "Failed to map interaction at index {Index}", i);
-                }
-            }
-
-            // 2. Bulk insert
-            if (interactions.Count > 0)
-            {
-                Guid[] ids = await _repository.InsertBatchAsync(interactions);
-
-                // 3. Enqueue all for analysis
-                // TODO               
-
-                response.SuccessfullyQueued = ids.Length;
-                response.InteractionIds = ids;
-            }
-
-            response.Failed = errors.Count;
-            response.Errors = errors.Count > 0 ? errors : null;
-
-            return response;
+        internal async Task<bool> PatchAsync(Guid id, UpdateInteractionRequest request, CancellationToken cancellationToken = default)
+        {
+            return await _repository.PatchAsync(id, request, cancellationToken);
         }
 
         private static Interaction MapToInteraction(Guid tenantId, IngestInteractionRequest request)
@@ -98,21 +80,6 @@ namespace CustomerInsights.ApiService.Services
                 Channel = request.Channel,
                 ExternalId = request.ExternalId,
             };
-        }
-
-        internal async Task<IReadOnlyList<ChannelCount>> GetTopChannelsAsync(TimeInterval period)
-        {
-            return await _repository.GetTopChannelsAsync(period);
-        }
-
-        public async Task<bool> DeleteAsync(Guid id)
-        {
-            return await _repository.DeleteAsync(id);
-        }
-
-        internal async Task<bool> PatchAsync(Guid id, UpdateInteractionRequest request)
-        {
-            return await _repository.PatchAsync(id, request);
         }
     }
 }

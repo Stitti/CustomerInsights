@@ -12,6 +12,7 @@ using Microsoft.Extensions.Logging;
 using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
+using RabbitMQ.Client;
 using Serilog;
 using Serilog.Extensions;
 using Serilog.Formatting.Compact;
@@ -201,6 +202,39 @@ namespace CustomerInsights.ServiceDefaults
             }
 
             return app;
+        }
+
+        public static IServiceCollection AddRabbitMqSender(this IServiceCollection services, IConfiguration configuration, string connectionName)
+        {
+            services.AddSingleton<IConnection>(serviceProvider =>
+            {
+                IConfiguration rabbitMqSection = configuration.GetSection(connectionName);
+                string? connectionString = rabbitMqSection.Get<string>();
+
+                if (string.IsNullOrWhiteSpace(connectionString))
+                {
+                    throw new InvalidOperationException("RabbitMQ connection string not found for name: " + connectionName);
+                }
+
+                Uri connectionUri = new Uri(connectionString);
+
+                ConnectionFactory connectionFactory = new ConnectionFactory
+                {
+                    HostName = connectionUri.Host,
+                    Port = connectionUri.Port,
+                    UserName = connectionUri.UserInfo.Split(':')[0],
+                    Password = connectionUri.UserInfo.Split(':')[1],
+                    VirtualHost = connectionUri.AbsolutePath.TrimStart('/'),
+                };
+
+                Task<IConnection> connectionTask = connectionFactory.CreateConnectionAsync();
+                connectionTask.Wait();
+
+                return connectionTask.Result;
+            });
+
+            services.AddSingleton<RabbitMqSenderService>();
+            return services;
         }
     }
 }
