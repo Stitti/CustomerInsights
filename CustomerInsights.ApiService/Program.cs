@@ -5,89 +5,95 @@ using CustomerInsights.ApiService.Utils;
 using CustomerInsights.Database;
 using CustomerInsights.ServiceDefaults;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using Serilog;
 
-WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
-
-builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
-builder.AddServiceDefaults();
-
-string? connectionString = builder.Configuration.GetConnectionString("customer-insights-db");
-if (string.IsNullOrWhiteSpace(connectionString))
-    throw new Exception("Database connection string is missing on configuration");
-
-builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connectionString));
-builder.Services.AddRabbitMqSender(builder.Configuration, "messaging");
-
-// Repositories
-builder.Services.AddScoped<InteractionRepository>();
-builder.Services.AddScoped<ContactRepository>();
-builder.Services.AddScoped<AccountRepository>();
-builder.Services.AddScoped<SignalRepository>();
-builder.Services.AddScoped<MetricsRepository>();
-
-// Services
-builder.Services.AddSingleton<TextNormalizer>();
-builder.Services.AddScoped<InteractionService>();
-builder.Services.AddScoped<ContactService>();
-builder.Services.AddScoped<AccountService>();
-builder.Services.AddScoped<SignalService>();
-builder.Services.AddScoped<MetricsService>();
-
-builder.AddLogging();
-
-builder.Services.AddControllers();
-
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(o =>
+public partial class Program
 {
-    o.SwaggerDoc("v1", new OpenApiInfo { Title = "Internal API", Version = "v1" });
-    //o.AddServer(new OpenApiServer { Url = "http://localhost:5200" });
-});
-
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowAll", policy =>
+    private static async Task Main(string[] args)
     {
-        policy.AllowAnyOrigin()
-              .AllowAnyHeader()
-              .AllowAnyMethod();
-    });
-});
+        WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
-WebApplication app = builder.Build();
+        builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+        builder.AddServiceDefaults();
 
-using IServiceScope scope = app.Services.CreateScope();
-AppDbContext dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-dbContext.Database.Migrate();
+        string? connectionString = builder.Configuration.GetConnectionString("customer-insights-db");
+        if (string.IsNullOrWhiteSpace(connectionString))
+            throw new Exception("Database connection string is missing on configuration");
 
-app.UseCors("AllowAll");
-app.MapControllers();
+        builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connectionString));
+        builder.Services.AddRabbitMqSender(builder.Configuration, "messaging");
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
-else
-{
-    app.UseHsts();
-    app.UseHttpsRedirection();
-}
+        // Repositories
+        builder.Services.AddScoped<InteractionRepository>();
+        builder.Services.AddScoped<ContactRepository>();
+        builder.Services.AddScoped<AccountRepository>();
+        builder.Services.AddScoped<SignalRepository>();
+        builder.Services.AddScoped<MetricsRepository>();
 
-try
-{
-    Log.Information("Starting application...");
-    await app.RunAsync();
-}
-catch (Exception ex)
-{
-    Log.Fatal(ex, "The application terminated unexpectedly.");
-    throw;
-}
-finally
-{
-    Log.Information("Application is shutting down...");
-    Log.CloseAndFlush();
+        // Services
+        builder.Services.AddSingleton<TextNormalizer>();
+        builder.Services.AddScoped<InteractionService>();
+        builder.Services.AddScoped<ContactService>();
+        builder.Services.AddScoped<AccountService>();
+        builder.Services.AddScoped<SignalService>();
+        builder.Services.AddScoped<MetricsService>();
+
+        builder.AddLogging();
+
+        builder.Services.AddControllers();
+
+        builder.Services.AddEndpointsApiExplorer();
+        builder.Services.AddSwaggerGen(o =>
+        {
+            o.SwaggerDoc("v1", new OpenApiInfo { Title = "Internal API", Version = "v1" });
+            //o.AddServer(new OpenApiServer { Url = "http://localhost:5200" });
+        });
+
+        builder.Services.AddCors(options =>
+        {
+            options.AddPolicy("AllowAll", policy =>
+            {
+                policy.AllowAnyOrigin()
+                      .AllowAnyHeader()
+                      .AllowAnyMethod();
+            });
+        });
+
+        WebApplication app = builder.Build();
+
+        using IServiceScope scope = app.Services.CreateScope();
+        AppDbContext dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        dbContext.Database.Migrate();
+
+        app.UseCors("AllowAll");
+        app.MapControllers();
+
+        if (app.Environment.IsDevelopment())
+        {
+            app.UseSwagger();
+            app.UseSwaggerUI();
+        }
+        else
+        {
+            app.UseHsts();
+            app.UseHttpsRedirection();
+        }
+
+        try
+        {
+            Log.Information("Starting application...");
+            await app.RunAsync();
+        }
+        catch (Exception ex)
+        {
+            Log.Fatal(ex, "The application terminated unexpectedly.");
+            throw;
+        }
+        finally
+        {
+            Log.Information("Application is shutting down...");
+            Log.CloseAndFlush();
+        }
+    }
 }

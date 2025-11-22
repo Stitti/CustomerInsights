@@ -1,8 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk.Worker">
 
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
-    <Nullable>enable</Nullable>
+	  <TargetFramework>net10.0</TargetFramework>
+	  <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>dotnet-CustomerInsight.WebhookWorker-ce5c8c64-d9e8-4863-b3b3-6586004fff99</UserSecretsId>
   </PropertyGroup>

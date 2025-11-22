@@ -4,7 +4,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <UserSecretsId>4092c633-ec22-4a4f-89e3-fd1d2d5db499</UserSecretsId>
@@ -16,8 +16,6 @@
     <ProjectReference Include="..\CustomerInsights.EmailService\CustomerInsights.EmailService.csproj" />
     <ProjectReference Include="..\CustomerInsights.NlpService\CustomerInsights.NlpService.csproj" />
     <ProjectReference Include="..\CustomerInsights.SatisfactionIndexService\CustomerInsights.SatisfactionIndexService.csproj" />
-    <ProjectReference Include="..\CustomerInsights.SignalWorker\CustomerInsights.SignalWorker.csproj" />
-    <ProjectReference Include="..\CustomerInsights.Worker\CustomerInsights.InferenceWorker.csproj" />
   </ItemGroup>
 
   <ItemGroup>

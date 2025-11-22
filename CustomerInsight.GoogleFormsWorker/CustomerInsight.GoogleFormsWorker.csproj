@@ -1,8 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk.Worker">
 
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
-    <Nullable>enable</Nullable>
+	  <TargetFramework>net10.0</TargetFramework>
+	  <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>dotnet-CustomerInsight.GoogleFormsWorker-7d27d3d1-3a07-4efc-95c1-addb3d71ee38</UserSecretsId>
   </PropertyGroup>
