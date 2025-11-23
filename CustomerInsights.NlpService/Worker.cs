@@ -67,6 +67,7 @@ namespace CustomerInsights.NlpService
                     await _channel.BasicNackAsync(eventArgs.DeliveryTag, false, false, _cancellationToken);
                     return;
                 }
+
                 string? text = TextCompressor.Compress(message.Message);
                 if (string.IsNullOrEmpty(text))
                 {

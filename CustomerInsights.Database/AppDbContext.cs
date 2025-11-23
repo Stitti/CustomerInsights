@@ -20,6 +20,7 @@ public sealed class AppDbContext : DbContext
     public DbSet<Signal> Signals => Set<Signal>();
     public DbSet<ApiKey> ApiKeys => Set<ApiKey>();
     public DbSet<EmailTemplate> EmailTemplates => Set<EmailTemplate>();
+    public DbSet<InteractionEmbedding> InteractionEmbeddings => Set<InteractionEmbedding>();
 
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
@@ -34,6 +35,7 @@ public sealed class AppDbContext : DbContext
             cfg.HasKey(a => a.Id);
 
             cfg.Property(a => a.Id).HasColumnName("id");
+            cfg.Property(s => s.TenantId).HasColumnName("tenant_id");
             cfg.Property(a => a.Name).HasColumnName("name").HasMaxLength(256).IsRequired();
             cfg.Property(a => a.ExternalId).HasColumnName("external_id").HasMaxLength(64).IsRequired();
             cfg.Property(a => a.ParentAccountId).HasColumnName("parent_account_id");
@@ -72,6 +74,7 @@ public sealed class AppDbContext : DbContext
             cfg.HasKey(c => c.Id);
 
             cfg.Property(c => c.Id).HasColumnName("id");
+            cfg.Property(s => s.TenantId).HasColumnName("tenant_id");
             cfg.Property(c => c.ExternalId).HasColumnName("external_id").HasMaxLength(64);
             cfg.Property(c => c.Firstname).HasColumnName("firstname").HasMaxLength(128);
             cfg.Property(c => c.Lastname).HasColumnName("lastname").HasMaxLength(128);
@@ -102,7 +105,7 @@ public sealed class AppDbContext : DbContext
             cfg.HasKey(i => i.Id);
 
             cfg.Property(i => i.Id).HasColumnName("id");
-            cfg.Property(i => i.TenantId).HasColumnName("tenant_id");
+            cfg.Property(s => s.TenantId).HasColumnName("tenant_id");
             cfg.Property(i => i.Source).HasColumnName("source").HasMaxLength(128);
             cfg.Property(i => i.ExternalId).HasColumnName("external_id").HasMaxLength(256);
             cfg.Property(i => i.Channel)
@@ -164,7 +167,7 @@ public sealed class AppDbContext : DbContext
         {
             cfg.ToTable("text_inference");
             cfg.HasKey(ti => ti.InteractionId); // PK = FK zu Interaction
-
+            cfg.Property(s => s.TenantId).HasColumnName("tenant_id");
             cfg.Property(ti => ti.InteractionId).HasColumnName("interaction_id");
             cfg.Property(ti => ti.Sentiment).HasColumnName("sentiment").HasMaxLength(16);
             cfg.Property(ti => ti.SentimentScore).HasColumnName("sentiment_score");
@@ -255,6 +258,26 @@ public sealed class AppDbContext : DbContext
             cfg.Property(k => k.Content).HasColumnName("content").HasMaxLength(2048).IsRequired();
             cfg.Property(k => k.LanguageCode).HasColumnName("language_code").HasMaxLength(2).IsRequired();
             cfg.Property(k => k.IsHtml).HasColumnName("is_html").IsRequired();
+        });
+
+        // -------------------- Interaction Embedding --------------------
+        b.Entity<InteractionEmbedding>(cfg =>
+        {
+            cfg.ToTable("interaction_embeddings");
+            cfg.HasKey(e => e.Id);
+
+            cfg.Property(e => e.Id).HasColumnName("id");
+            cfg.Property(s => s.TenantId).HasColumnName("tenant_id");
+            cfg.Property(e => e.InteractionId).HasColumnName("interaction_id");
+            cfg.Property(e => e.AccountId).HasColumnName("account_id");
+            cfg.Property(e => e.ContactId).HasColumnName("contact_id");
+            cfg.Property(e => e.Channel).HasColumnName("channel");
+            cfg.Property(e => e.Emotions).HasColumnName("emotion");
+            cfg.Property(e => e.Aspects).HasColumnName("aspects");
+            cfg.Property(e => e.Urgency).HasColumnName("urgency");
+            cfg.Property(e => e.CreatedAt).HasColumnName("created_at");
+            cfg.Property(e => e.TextFull).HasColumnName("text_full");
+            cfg.Property(e => e.Embedding).HasColumnName("embedding");
         });
     }
 }

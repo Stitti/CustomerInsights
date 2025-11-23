@@ -5,6 +5,7 @@ namespace CustomerInsights.Models;
 public sealed class TextInference
 {
     public Guid InteractionId { get; set; }      // PK + FK → Interaction.Id
+    public Guid TenantId { get; set; }
 
     public string Sentiment { get; set; } = "neu";   // "neg" | "neu" | "pos"
     public double SentimentScore { get; set; }       // 0..1

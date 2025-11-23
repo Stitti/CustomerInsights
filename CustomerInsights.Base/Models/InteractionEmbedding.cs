@@ -1,12 +1,13 @@
-using CustomerInsights.Base.Enums;
+﻿using CustomerInsights.Base.Enums;
 
-namespace CustomerInsights.RagService.Models
+namespace CustomerInsights.Models
 {
-    public class RagDocument
+    public class InteractionEmbedding
     {
         public Guid Id { get; set; }
+        public Guid TenantId { get; set; }
         public Guid InteractionId { get; set; }
-        public Guid? CompanyId { get; set; }
+        public Guid? AccountId { get; set; }
         public Guid? ContactId { get; set; }
         public Channel? Channel { get; set; }
         public string[] Emotions { get; set; } = Array.Empty<string>();
@@ -14,5 +15,6 @@ namespace CustomerInsights.RagService.Models
         public string Urgency { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
         public string TextFull { get; set; } = string.Empty;
+        public float[] Embedding { get; set; } = Array.Empty<float>();
     }
 }

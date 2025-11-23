@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { Flex, Box } from '@radix-ui/themes';
+import { Flex, Box, Dialog, IconButton } from '@radix-ui/themes';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
-import Sidebar, {type SidebarItem} from "../Sidebar.tsx";
+import Sidebar, {type SidebarItem} from "../Sidebar";
 import {
     BellIcon,
     Building2Icon,
@@ -9,8 +9,12 @@ import {
     MessageSquareIcon,
     RouteIcon,
     SquareUserRoundIcon,
-    TagIcon
+    TagIcon,
+    BotIcon,
+    XIcon
 } from "lucide-react";
+import ChatbotWindow from "../ChatbotWindow";
+import ChatbotButton from "../ChatbotButton";
 
 const items: SidebarItem[] = [
     { key: '',     label: 'Dashboard',    icon: <LayoutDashboard /> },
@@ -25,6 +29,7 @@ const items: SidebarItem[] = [
 export default function AppLayout() {
     const location = useLocation();
     const navigate = useNavigate();
+    const [chatOpen, setChatOpen] = useState(false);
 
     const currentKey = location.pathname.split('/')[1] || 'overview';
 
@@ -37,10 +42,38 @@ export default function AppLayout() {
                     onSelect={key => navigate(`/${key}`)}
                     title="Event Dashboard"
                 />
-                <Box flexGrow="1">
+                <Box flexGrow="1" style={{ position: 'relative' }}>
                     <Outlet />
+
+                    {/* Floating Chatbot Button */}
+                    {!chatOpen && (
+                        <Box
+                                style={{
+                                position: 'fixed',
+                                bottom: '24px',
+                                right: '24px',
+                                zIndex: 1000,
+                            }}
+                        >
+                            <ChatbotButton onClick={() => setChatOpen(true)}/>
+                        </Box>
+                    )}
                 </Box>
             </Flex>
+
+            {/* Chatbot Dialog */}
+            <Dialog.Root open={chatOpen} onOpenChange={setChatOpen}>
+                <Dialog.Content
+                    style={{
+                        width: '60vw',
+                        height: '80vh',
+                        padding: 0,
+                        overflow: 'hidden'
+                    }}
+                >
+                    <ChatbotWindow onClose={() => setChatOpen(false)} />
+                </Dialog.Content>
+            </Dialog.Root>
         </>
     );
 }

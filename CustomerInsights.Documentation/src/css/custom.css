@@ -1,30 +1,351 @@
 /**
- * Any CSS included here will be global. The classic template
- * bundles Infima by default. Infima is a CSS framework designed to
- * work well for content-centric websites.
+ * Radix UI inspired Docusaurus Theme
+ * Place this in src/css/custom.css
  */
 
-/* You can override the default Infima variables here. */
 :root {
-  --ifm-color-primary: #2e8555;
-  --ifm-color-primary-dark: #29784c;
-  --ifm-color-primary-darker: #277148;
-  --ifm-color-primary-darkest: #205d3b;
-  --ifm-color-primary-light: #33925d;
-  --ifm-color-primary-lighter: #359962;
-  --ifm-color-primary-lightest: #3cad6e;
-  --ifm-code-font-size: 95%;
-  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
+  /* Radix UI Color Palette - Light Mode */
+  --ifm-color-primary: #0090ff;
+  --ifm-color-primary-dark: #0081e6;
+  --ifm-color-primary-darker: #007ad6;
+  --ifm-color-primary-darkest: #0064b1;
+  --ifm-color-primary-light: #1a9fff;
+  --ifm-color-primary-lighter: #33adff;
+  --ifm-color-primary-lightest: #66c2ff;
+
+  /* Background Colors */
+  --ifm-background-color: #ffffff;
+  --ifm-background-surface-color: #fcfcfc;
+
+  /* Text Colors */
+  --ifm-font-color-base: #11181c;
+  --ifm-font-color-secondary: #687076;
+  --ifm-heading-color: #11181c;
+
+  /* Borders */
+  --ifm-color-emphasis-300: #e8e9ea;
+  --ifm-hr-border-color: #e8e9ea;
+
+  /* Code Blocks */
+  --ifm-code-background: #f4f4f5;
+  --ifm-code-color: #11181c;
+
+  /* Typography */
+  --ifm-font-family-base: -apple-system, BlinkMacSystemFont, "Segoe UI",
+  "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans",
+  "Droid Sans", "Helvetica Neue", sans-serif;
+  --ifm-font-family-monospace: "JetBrains Mono", "Fira Code",
+  "Consolas", "Monaco", monospace;
+
+  --ifm-font-size-base: 15px;
+  --ifm-line-height-base: 1.6;
+  --ifm-heading-font-weight: 600;
+
+  /* Spacing */
+  --ifm-spacing-horizontal: 1.5rem;
+  --ifm-spacing-vertical: 1.5rem;
+
+  /* Border Radius */
+  --ifm-global-radius: 8px;
+  --ifm-button-border-radius: 6px;
+
+  /* Shadows */
+  --ifm-global-shadow-lw: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --ifm-global-shadow-md: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --ifm-global-shadow-tl: 0 4px 16px rgba(0, 0, 0, 0.12);
+
+  /* Navbar */
+  --ifm-navbar-height: 60px;
+  --ifm-navbar-background-color: rgba(255, 255, 255, 0.8);
+  --ifm-navbar-shadow: 0 1px 0 0 rgba(0, 0, 0, 0.05);
+
+  /* Sidebar */
+  --ifm-sidebar-width: 280px;
+  --doc-sidebar-width: 280px;
 }
 
-/* For readability concerns, you should choose a lighter palette in dark mode. */
 [data-theme='dark'] {
-  --ifm-color-primary: #25c2a0;
-  --ifm-color-primary-dark: #21af90;
-  --ifm-color-primary-darker: #1fa588;
-  --ifm-color-primary-darkest: #1a8870;
-  --ifm-color-primary-light: #29d5b0;
-  --ifm-color-primary-lighter: #32d8b4;
-  --ifm-color-primary-lightest: #4fddbf;
-  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
+  /* Radix UI Dark Mode Colors */
+  --ifm-color-primary: #0090ff;
+  --ifm-color-primary-dark: #0588f0;
+  --ifm-color-primary-darker: #0581e0;
+  --ifm-color-primary-darkest: #0468b8;
+  --ifm-color-primary-light: #1a9bff;
+  --ifm-color-primary-lighter: #2ea2ff;
+  --ifm-color-primary-lightest: #52b4ff;
+
+  /* Background Colors */
+  --ifm-background-color: #111113;
+  --ifm-background-surface-color: #18181b;
+
+  /* Text Colors */
+  --ifm-font-color-base: #edeef0;
+  --ifm-font-color-secondary: #b0b2b5;
+  --ifm-heading-color: #edeef0;
+
+  /* Borders */
+  --ifm-color-emphasis-300: #27272a;
+  --ifm-hr-border-color: #27272a;
+
+  /* Code Blocks */
+  --ifm-code-background: #1c1c1f;
+  --ifm-code-color: #edeef0;
+
+  /* Navbar */
+  --ifm-navbar-background-color: rgba(17, 17, 19, 0.8);
+  --ifm-navbar-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.05);
+}
+
+/* Global Styles */
+html {
+  font-feature-settings: 'kern' 1, 'liga' 1, 'calt' 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--ifm-font-family-base);
+  background-color: var(--ifm-background-color);
+}
+
+/* Navbar Styling */
+.navbar {
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--ifm-color-emphasis-300);
+  box-shadow: none;
+}
+
+.navbar__brand {
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.navbar__link {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ifm-font-color-secondary);
+  transition: color 0.2s ease;
+}
+
+.navbar__link:hover,
+.navbar__link--active {
+  color: var(--ifm-font-color-base);
+}
+
+/* Sidebar Styling */
+.menu {
+  padding: 1rem 0.5rem;
+}
+
+.menu__link {
+  font-size: 14px;
+  border-radius: 6px;
+  padding: 0.375rem 0.75rem;
+  color: var(--ifm-font-color-secondary);
+  transition: all 0.15s ease;
+}
+
+.menu__link:hover {
+  background-color: var(--ifm-color-emphasis-300);
+  color: var(--ifm-font-color-base);
+}
+
+.menu__link--active {
+  background-color: var(--ifm-color-primary);
+  color: #ffffff;
+  font-weight: 500;
+}
+
+.menu__link--active:hover {
+  background-color: var(--ifm-color-primary-dark);
+}
+
+.menu__list-item-collapsible {
+  margin-top: 0.25rem;
+}
+
+/* Content Styling */
+.markdown {
+  --ifm-h1-font-size: 2.5rem;
+  --ifm-h2-font-size: 2rem;
+  --ifm-h3-font-size: 1.5rem;
+  --ifm-h4-font-size: 1.25rem;
+}
+
+.markdown h1 {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: 1.5rem;
+}
+
+.markdown h2 {
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  margin-top: 2.5rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--ifm-color-emphasis-300);
+}
+
+.markdown h3,
+.markdown h4 {
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+}
+
+.markdown p {
+  line-height: 1.7;
+  margin-bottom: 1.25rem;
+}
+
+.markdown a {
+  color: var(--ifm-color-primary);
+  text-decoration: none;
+  transition: opacity 0.2s ease;
+}
+
+.markdown a:hover {
+  opacity: 0.8;
+  text-decoration: underline;
+}
+
+/* Code Blocks */
+code {
+  background-color: var(--ifm-code-background);
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: 4px;
+  padding: 0.15rem 0.375rem;
+  font-size: 0.875em;
+  font-family: var(--ifm-font-family-monospace);
+}
+
+.prism-code {
+  border-radius: 8px;
+  font-size: 14px;
+  line-height: 1.6;
+  box-shadow: var(--ifm-global-shadow-md);
+}
+
+/* Buttons */
+.button {
+  border-radius: var(--ifm-button-border-radius);
+  font-weight: 500;
+  font-size: 14px;
+  padding: 0.5rem 1rem;
+  transition: all 0.15s ease;
+}
+
+.button--primary {
+  background-color: var(--ifm-color-primary);
+  border-color: var(--ifm-color-primary);
+}
+
+.button--primary:hover {
+  background-color: var(--ifm-color-primary-dark);
+  border-color: var(--ifm-color-primary-dark);
+}
+
+.button--secondary {
+  color: var(--ifm-font-color-base);
+  border-color: var(--ifm-color-emphasis-300);
+}
+
+.button--secondary:hover {
+  background-color: var(--ifm-color-emphasis-300);
+}
+
+/* Tables */
+table {
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--ifm-color-emphasis-300);
+}
+
+table thead tr {
+  background-color: var(--ifm-background-surface-color);
+}
+
+table th {
+  font-weight: 600;
+  font-size: 14px;
+  padding: 0.75rem 1rem;
+  border-bottom: 2px solid var(--ifm-color-emphasis-300);
+}
+
+table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--ifm-color-emphasis-300);
+}
+
+/* Admonitions */
+.admonition {
+  border-radius: 8px;
+  border-left-width: 4px;
+  box-shadow: var(--ifm-global-shadow-lw);
+}
+
+/* Breadcrumbs */
+.breadcrumbs__link {
+  font-size: 13px;
+  color: var(--ifm-font-color-secondary);
+}
+
+/* Table of Contents */
+.table-of-contents {
+  font-size: 13px;
+}
+
+.table-of-contents__link {
+  color: var(--ifm-font-color-secondary);
+  transition: color 0.15s ease;
+}
+
+.table-of-contents__link:hover,
+.table-of-contents__link--active {
+  color: var(--ifm-color-primary);
+}
+
+/* Footer */
+.footer {
+  background-color: var(--ifm-background-surface-color);
+  border-top: 1px solid var(--ifm-color-emphasis-300);
+  padding: 2rem 0;
+}
+
+.footer__title {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.footer__link-item {
+  font-size: 14px;
+  color: var(--ifm-font-color-secondary);
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--ifm-color-emphasis-300);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--ifm-font-color-secondary);
+}
+
+/* Smooth transitions */
+* {
+  transition-property: background-color, border-color, color, fill, stroke;
+  transition-duration: 150ms;
+  transition-timing-function: ease-in-out;
 }

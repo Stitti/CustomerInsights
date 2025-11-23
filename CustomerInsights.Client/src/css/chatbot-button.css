@@ -1,0 +1,32 @@
+.hover-button {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(45deg, #ff6ec4, #7873f5);
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    outline: none;
+    transition:
+            transform 0.1s ease,
+            box-shadow 0.3s ease;
+    box-shadow: 0 4px 15px rgba(255, 110, 196, 0.5);
+}
+
+.hover-button:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 20px rgba(255, 110, 196, 0.7);
+}
+
+.hover-button svg {
+    width: 40px;
+    height: 40px;
+    transition: transform 0.3s ease;
+}
+
+.hover-button:hover svg {
+    transform: scale(1.05);
+}

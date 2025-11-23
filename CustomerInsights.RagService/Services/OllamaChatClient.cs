@@ -56,9 +56,9 @@ namespace CustomerInsights.RagService.Services
                 contextBuilder.AppendLine("FirmaId: " + (document.CompanyId.HasValue ? document.CompanyId.Value.ToString() : "null"));
                 contextBuilder.AppendLine("KontaktId: " + (document.ContactId.HasValue ? document.ContactId.Value.ToString() : "null"));
                 contextBuilder.AppendLine("Kanal: " + document.Channel);
-                contextBuilder.AppendLine("Emotion: " + document.Emotion);
-                contextBuilder.AppendLine("Produkte: " + (document.Products != null ? string.Join(", ", document.Products) : string.Empty));
-                contextBuilder.AppendLine("Tags: " + (document.Tags != null ? string.Join(", ", document.Tags) : string.Empty));
+                contextBuilder.AppendLine("Emotionen: " + (document.Emotions != null ? string.Join(", ", document.Emotions) : string.Empty));
+                contextBuilder.AppendLine("Produkte: " + (document.Aspects != null ? string.Join(", ", document.Aspects) : string.Empty));
+                contextBuilder.AppendLine("Dringlichkeit: " + document.Urgency);
                 contextBuilder.AppendLine("Datum: " + document.CreatedAt.ToString("O"));
                 contextBuilder.AppendLine();
                 contextBuilder.AppendLine(document.TextFull);

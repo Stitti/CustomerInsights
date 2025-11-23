@@ -31,7 +31,6 @@ namespace CustomerInsights.RagService.Services
 
             string requestJson = JsonSerializer.Serialize(payload, _jsonSerializerOptions);
             StringContent content = new StringContent(requestJson, Encoding.UTF8, "application/json");
-
             HttpResponseMessage response = await httpClient.PostAsync("/embedding/embed", content);
 
             if (response.IsSuccessStatusCode == false)
@@ -42,8 +41,7 @@ namespace CustomerInsights.RagService.Services
             }
 
             string responseJson = await response.Content.ReadAsStringAsync();
-            EmbeddingResponse? embeddingResponse =
-                JsonSerializer.Deserialize<EmbeddingResponse>(responseJson, _jsonSerializerOptions);
+            EmbeddingResponse? embeddingResponse = JsonSerializer.Deserialize<EmbeddingResponse>(responseJson, _jsonSerializerOptions);
 
             if (embeddingResponse == null || embeddingResponse.Embeddings == null || embeddingResponse.Embeddings.Count == 0)
             {

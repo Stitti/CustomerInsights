@@ -18,16 +18,7 @@ namespace CustomerInsights.RagService.Services
         public async Task<RagResponse> QueryAsync(RagRequest request)
         {
             double[] queryEmbedding = await _embeddingClient.CreateEmbeddingAsync(request.Question);
-
-            IList<RagDocument> documents = await _interactionEmbeddingRepository.GetRelevantDocumentsAsync(
-                queryEmbedding,
-                request.CompanyId,
-                request.Product,
-                request.Sentiment,
-                request.From,
-                request.To,
-                0);
-
+            IList<RagDocument> documents = await _interactionEmbeddingRepository.GetRelevantDocumentsAsync(queryEmbedding, request.AccountId, request.Product, request.Sentiment, request.From, request.To, 0);
             string answer;
 
             if (documents.Count == 0)

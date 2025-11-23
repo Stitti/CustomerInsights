@@ -17,12 +17,12 @@ namespace CustomerInsights.NlpRuntime
             get
             {
                 int id;
-                if (this.vocabDictionary.TryGetValue(token, out id))
+                if (vocabDictionary.TryGetValue(token, out id))
                 {
                     return id;
                 }
 
-                return this.vocabDictionary[this.unknownToken];
+                return vocabDictionary[unknownToken];
             }
         }
 
@@ -30,15 +30,15 @@ namespace CustomerInsights.NlpRuntime
         {
             string[] lines = File.ReadAllLines(vocabTxtPath);
 
-            this.vocabDictionary = lines
+            vocabDictionary = lines
                 .Select((token, index) => new { Token = token.Trim(), Index = index })
                 .ToDictionary(x => x.Token, x => x.Index);
 
-            this.lowerCase = lowerCase;
+            lowerCase = lowerCase;
 
-            if (this.vocabDictionary.ContainsKey(this.unknownToken) == false
-                || this.vocabDictionary.ContainsKey(this.clsToken) == false
-                || this.vocabDictionary.ContainsKey(this.sepToken) == false)
+            if (vocabDictionary.ContainsKey(unknownToken) == false
+                || vocabDictionary.ContainsKey(clsToken) == false
+                || vocabDictionary.ContainsKey(sepToken) == false)
             {
                 throw new InvalidOperationException("vocab.txt must contain [UNK], [CLS], [SEP].");
             }
@@ -53,19 +53,19 @@ namespace CustomerInsights.NlpRuntime
                 throw new ArgumentNullException(nameof(text));
             }
 
-            if (this.lowerCase)
+            if (lowerCase)
             {
                 text = text.ToLowerInvariant();
             }
 
             IEnumerable<string> basicTokens = BasicTokenize(text);
-            IEnumerable<string> wordPieces = this.WordPiece(basicTokens);
+            IEnumerable<string> wordPieces = WordPiece(basicTokens);
 
             List<int> ids = new List<int>(maxLen);
             List<int> tokenTypeIds = new List<int>(maxLen);
 
             // [CLS]
-            ids.Add(this[this.clsToken]);
+            ids.Add(this[clsToken]);
             tokenTypeIds.Add(0);
 
             // Tokens
@@ -76,7 +76,7 @@ namespace CustomerInsights.NlpRuntime
             }
 
             // [SEP]
-            ids.Add(this[this.sepToken]);
+            ids.Add(this[sepToken]);
             tokenTypeIds.Add(0);
 
             if (ids.Count > maxLen)
@@ -105,7 +105,7 @@ namespace CustomerInsights.NlpRuntime
                 throw new ArgumentNullException(nameof(hypothesis));
             }
 
-            if (this.lowerCase)
+            if (lowerCase)
             {
                 premise = premise.ToLowerInvariant();
                 hypothesis = hypothesis.ToLowerInvariant();
@@ -114,14 +114,14 @@ namespace CustomerInsights.NlpRuntime
             IEnumerable<string> premiseTokens = BasicTokenize(premise);
             IEnumerable<string> hypothesisTokens = BasicTokenize(hypothesis);
 
-            IEnumerable<string> wordPiecesPremise = this.WordPiece(premiseTokens);
-            IEnumerable<string> wordPiecesHypothesis = this.WordPiece(hypothesisTokens);
+            IEnumerable<string> wordPiecesPremise = WordPiece(premiseTokens);
+            IEnumerable<string> wordPiecesHypothesis = WordPiece(hypothesisTokens);
 
             List<int> ids = new List<int>(maxLen);
             List<int> tokenTypeIds = new List<int>(maxLen);
 
             // [CLS]
-            ids.Add(this[this.clsToken]);
+            ids.Add(this[clsToken]);
             tokenTypeIds.Add(0);
 
             // Premise
@@ -132,7 +132,7 @@ namespace CustomerInsights.NlpRuntime
             }
 
             // [SEP]
-            ids.Add(this[this.sepToken]);
+            ids.Add(this[sepToken]);
             tokenTypeIds.Add(0);
 
             // Hypothesis
@@ -143,7 +143,7 @@ namespace CustomerInsights.NlpRuntime
             }
 
             // [SEP]
-            ids.Add(this[this.sepToken]);
+            ids.Add(this[sepToken]);
             tokenTypeIds.Add(1);
 
             if (ids.Count > maxLen)
@@ -188,7 +188,7 @@ namespace CustomerInsights.NlpRuntime
         {
             foreach (string token in basicTokens)
             {
-                if (this.vocabDictionary.ContainsKey(token))
+                if (vocabDictionary.ContainsKey(token))
                 {
                     yield return token;
                     continue;
@@ -212,7 +212,7 @@ namespace CustomerInsights.NlpRuntime
                             piece = "##" + piece;
                         }
 
-                        if (this.vocabDictionary.ContainsKey(piece))
+                        if (vocabDictionary.ContainsKey(piece))
                         {
                             currentSubToken = piece;
                             break;
@@ -233,7 +233,7 @@ namespace CustomerInsights.NlpRuntime
 
                 if (isBad)
                 {
-                    yield return this.unknownToken;
+                    yield return unknownToken;
                 }
                 else
                 {

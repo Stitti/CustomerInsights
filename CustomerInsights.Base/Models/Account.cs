@@ -9,6 +9,7 @@ namespace CustomerInsights.ApiService.Models;
 public sealed class Account
 {
     public Guid Id { get; set; }
+    public Guid TenantId { get; set; }
     public string Name { get; set; } = string.Empty;
     public string ExternalId { get; set; } = string.Empty;
     public Account? ParentAccount { get; set; }

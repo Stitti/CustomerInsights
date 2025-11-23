@@ -14,7 +14,9 @@
     <ProjectReference Include="..\CustomerInsights.ApiService\CustomerInsights.ApiService.csproj" />
     <ProjectReference Include="..\CustomerInsights.DocumentService\CustomerInsights.DocumentService.csproj" />
     <ProjectReference Include="..\CustomerInsights.EmailService\CustomerInsights.EmailService.csproj" />
+    <ProjectReference Include="..\CustomerInsights.EmbeddingService\CustomerInsights.EmbeddingService.csproj" />
     <ProjectReference Include="..\CustomerInsights.NlpService\CustomerInsights.NlpService.csproj" />
+    <ProjectReference Include="..\CustomerInsights.RagService\CustomerInsights.RagService.csproj" />
     <ProjectReference Include="..\CustomerInsights.SatisfactionIndexService\CustomerInsights.SatisfactionIndexService.csproj" />
   </ItemGroup>
 
